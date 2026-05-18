@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class LevelUpEventProcessor extends GameEventProcessor {
 
-    private static final Pattern LEVEL_UP_DETECTION_PATTERN = Pattern.compile("Congratulations, you just advanced a[n]? (.*) level\\.");
+    private static final Pattern LEVEL_UP_DETECTION_PATTERN = Pattern.compile("Congratulations, you(?:'ve)? just advanced (?:a|an|your) (.*?) level");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 

@@ -133,7 +133,7 @@ public class DiscordChatboxBroadcasterPluginTest {
     public void testLevelUpEventSimulation() {
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("Congratulations, you just advanced a Strength level.");
+        simulatedMessage.setMessage("Congratulations, you've just advanced your Construction level. You are now level 81.");
         testPlugin.onChatMessage(simulatedMessage);
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }

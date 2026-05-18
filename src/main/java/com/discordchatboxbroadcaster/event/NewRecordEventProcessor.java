@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class NewRecordEventProcessor extends GameEventProcessor {
 
-    private static final Pattern RECORD_DETECTION_PATTERN = Pattern.compile("(?i)(.*personal best.*)");
+    private static final Pattern RECORD_DETECTION_PATTERN = Pattern.compile("(?i)((?:(?:Fight |Lap |Challenge |Corrupted challenge )?duration:|Subdued in) [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 

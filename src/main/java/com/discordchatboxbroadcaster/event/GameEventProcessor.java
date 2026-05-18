@@ -32,7 +32,12 @@ public abstract class GameEventProcessor {
         }
 
         ChatMessageType incomingMessageType = incomingChatMessage.getType();
-        if (incomingMessageType != ChatMessageType.GAMEMESSAGE && incomingMessageType != ChatMessageType.SPAM) {
+        String typeName = incomingMessageType.name();
+
+        if (incomingMessageType != ChatMessageType.GAMEMESSAGE
+                && incomingMessageType != ChatMessageType.SPAM
+                && !typeName.contains("LEVELUP")
+                && !typeName.contains("LEVEL_UP")) {
             return;
         }
 

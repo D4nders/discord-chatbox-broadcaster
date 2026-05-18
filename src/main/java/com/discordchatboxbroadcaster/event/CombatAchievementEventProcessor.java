@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class CombatAchievementEventProcessor extends GameEventProcessor {
 
-    private static final Pattern COMBAT_ACHIEVEMENT_DETECTION_PATTERN = Pattern.compile("Congratulations, you've completed a[n]? (.*) combat task: (.*)");
+    private static final Pattern COMBAT_ACHIEVEMENT_DETECTION_PATTERN = Pattern.compile("(?:CA_ID:\\d+\\|)?Congratulations, you've completed an? (\\w+) combat task: (.*)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 
