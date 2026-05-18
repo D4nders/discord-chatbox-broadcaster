@@ -3,6 +3,7 @@ package com.discordchatboxbroadcaster;
 import com.discordchatboxbroadcaster.event.GameEventProcessor;
 import com.discordchatboxbroadcaster.event.PetEventProcessor;
 import com.discordchatboxbroadcaster.event.CollectionLogEventProcessor;
+import com.discordchatboxbroadcaster.event.ValuableDropEventProcessor;
 import com.discordchatboxbroadcaster.notifier.DiscordWebhookNotifier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.google.inject.Provides;
@@ -56,7 +57,8 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 		activeEventProcessors = Arrays.asList(
 				new PetEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
-				new CollectionLogEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState)
+				new CollectionLogEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
+				new ValuableDropEventProcessor(instantiatedNotifiers, pluginConfiguration)
 		);
 	}
 

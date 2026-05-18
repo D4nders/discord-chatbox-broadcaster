@@ -15,4 +15,7 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 
 	@ConfigItem(keyName = "notifyCollectionLog", name = "Notify Collection Log", description = "", position = 3)
 	default boolean notifyCollectionLog() { return true; }
+
+	@ConfigItem(keyName = "notifyValuableDrop", name = "Notify Valuable Drop", description = "", position = 4)
+	default boolean notifyValuableDrop() { return true; }
 }

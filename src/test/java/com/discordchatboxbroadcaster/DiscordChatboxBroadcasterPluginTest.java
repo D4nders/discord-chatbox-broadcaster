@@ -46,6 +46,7 @@ public class DiscordChatboxBroadcasterPluginTest {
 
         when(pluginConfigurationMock.notifyPet()).thenReturn(true);
         when(pluginConfigurationMock.notifyCollectionLog()).thenReturn(true);
+        when(pluginConfigurationMock.notifyValuableDrop()).thenReturn(true);
         when(pluginConfigurationMock.webhookUrl()).thenReturn("https://discord.com/api/webhooks/test");
 
         when(networkClientMock.newCall(any(Request.class))).thenReturn(networkCallMock);
@@ -84,6 +85,17 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedCollectionLogMessage.setMessage("New item added to your collection log: Abyssal whip");
 
         testPlugin.onChatMessage(simulatedCollectionLogMessage);
+
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testValuableDropEventSimulation() {
+        ChatMessage simulatedValuableDropMessage = new ChatMessage();
+        simulatedValuableDropMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedValuableDropMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
+
+        testPlugin.onChatMessage(simulatedValuableDropMessage);
 
         verify(networkClientMock, times(1)).newCall(any(Request.class));
     }
