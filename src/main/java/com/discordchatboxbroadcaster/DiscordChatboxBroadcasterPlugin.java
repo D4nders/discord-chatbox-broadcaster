@@ -1,8 +1,15 @@
 package com.discordchatboxbroadcaster;
 
-import com.discordchatboxbroadcaster.event.GameEventProcessor;
-import com.discordchatboxbroadcaster.event.PetEventProcessor;
+import com.discordchatboxbroadcaster.event.AchievementDiaryEventProcessor;
 import com.discordchatboxbroadcaster.event.CollectionLogEventProcessor;
+import com.discordchatboxbroadcaster.event.CombatAchievementEventProcessor;
+import com.discordchatboxbroadcaster.event.DeathEventProcessor;
+import com.discordchatboxbroadcaster.event.GameEventProcessor;
+import com.discordchatboxbroadcaster.event.KillEventProcessor;
+import com.discordchatboxbroadcaster.event.LevelUpEventProcessor;
+import com.discordchatboxbroadcaster.event.NewRecordEventProcessor;
+import com.discordchatboxbroadcaster.event.PetEventProcessor;
+import com.discordchatboxbroadcaster.event.QuestEventProcessor;
 import com.discordchatboxbroadcaster.event.ValuableDropEventProcessor;
 import com.discordchatboxbroadcaster.notifier.DiscordWebhookNotifier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
@@ -58,7 +65,14 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		activeEventProcessors = Arrays.asList(
 				new PetEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
 				new CollectionLogEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
-				new ValuableDropEventProcessor(instantiatedNotifiers, pluginConfiguration)
+				new ValuableDropEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
+				new QuestEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new NewRecordEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new LevelUpEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new KillEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new DeathEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new CombatAchievementEventProcessor(instantiatedNotifiers, pluginConfiguration),
+				new AchievementDiaryEventProcessor(instantiatedNotifiers, pluginConfiguration)
 		);
 	}
 

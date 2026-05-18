@@ -18,4 +18,25 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 
 	@ConfigItem(keyName = "notifyValuableDrop", name = "Notify Valuable Drop", description = "", position = 4)
 	default boolean notifyValuableDrop() { return true; }
+
+	@ConfigItem(keyName = "notifyQuest", name = "Notify Quest Completion", description = "", position = 5)
+	default boolean notifyQuest() { return true; }
+
+	@ConfigItem(keyName = "notifyNewRecord", name = "Notify New Record (PB)", description = "", position = 6)
+	default boolean notifyNewRecord() { return true; }
+
+	@ConfigItem(keyName = "notifyLevelUp", name = "Notify Level Up", description = "", position = 7)
+	default boolean notifyLevelUp() { return true; }
+
+	@ConfigItem(keyName = "notifyKill", name = "Notify Player Kill", description = "", position = 8)
+	default boolean notifyKill() { return true; }
+
+	@ConfigItem(keyName = "notifyDeath", name = "Notify Death", description = "", position = 9)
+	default boolean notifyDeath() { return true; }
+
+	@ConfigItem(keyName = "notifyCombatAchievement", name = "Notify Combat Achievement", description = "", position = 10)
+	default boolean notifyCombatAchievement() { return true; }
+
+	@ConfigItem(keyName = "notifyAchievementDiary", name = "Notify Achievement Diary", description = "", position = 11)
+	default boolean notifyAchievementDiary() { return true; }
 }

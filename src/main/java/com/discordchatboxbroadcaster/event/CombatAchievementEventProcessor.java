@@ -4,50 +4,43 @@ import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
-import com.discordchatboxbroadcaster.SharedEventState;
 
 import java.awt.Color;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ValuableDropEventProcessor extends GameEventProcessor {
+public class CombatAchievementEventProcessor extends GameEventProcessor {
 
-    private static final Pattern VALUABLE_DROP_DETECTION_PATTERN = Pattern.compile("(?:Valuable drop: |Untradeable drop: )(.*)");
+    private static final Pattern COMBAT_ACHIEVEMENT_DETECTION_PATTERN = Pattern.compile("Congratulations, you've completed a[n]? (.*) combat task: (.*)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
     private final ChatboxImageGenerator imageGenerator;
-    private final SharedEventState sharedEventState;
 
-    public ValuableDropEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration, SharedEventState sharedEventState) {
+    public CombatAchievementEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
-        this.sharedEventState = sharedEventState;
         this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
     protected boolean isFeatureEnabled() {
-        return pluginConfiguration.notifyValuableDrop();
+        return pluginConfiguration.notifyCombatAchievement();
     }
 
     @Override
     protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
-        if (currentTick != -1 && sharedEventState.isWithinCollectionLogWindow(currentTick)) {
-            return;
-        }
-
-        Matcher patternMatcher = VALUABLE_DROP_DETECTION_PATTERN.matcher(sanitizedMessageContent);
+        Matcher patternMatcher = COMBAT_ACHIEVEMENT_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1));
+            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1), patternMatcher.group(2));
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String dropDetails) {
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, String tier, String taskName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("received a drop: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(dropDetails, new Color(239, 16, 32)));
+        notificationSegments.add(new ChatSegment("completed a combat task: ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(tier + " - " + taskName, new Color(20, 100, 200)));
 
         byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
         dispatchGeneratedImagePayload(renderedImagePayload);

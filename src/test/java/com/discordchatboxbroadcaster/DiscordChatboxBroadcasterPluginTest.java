@@ -3,6 +3,7 @@ package com.discordchatboxbroadcaster;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
+import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
@@ -35,18 +36,27 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     private DiscordChatboxBroadcasterPlugin testPlugin;
     private AutoCloseable mockitoSession;
+    private Player localPlayerMock;
 
     @Before
     public void setUp() {
         mockitoSession = MockitoAnnotations.openMocks(this);
 
-        Player localPlayerMock = mock(Player.class);
+        localPlayerMock = mock(Player.class);
         when(localPlayerMock.getName()).thenReturn("TestPlayer");
         when(gameClientMock.getLocalPlayer()).thenReturn(localPlayerMock);
 
         when(pluginConfigurationMock.notifyPet()).thenReturn(true);
         when(pluginConfigurationMock.notifyCollectionLog()).thenReturn(true);
         when(pluginConfigurationMock.notifyValuableDrop()).thenReturn(true);
+        when(pluginConfigurationMock.notifyQuest()).thenReturn(true);
+        when(pluginConfigurationMock.notifyNewRecord()).thenReturn(true);
+        when(pluginConfigurationMock.notifyLevelUp()).thenReturn(true);
+        when(pluginConfigurationMock.notifyKill()).thenReturn(true);
+        when(pluginConfigurationMock.notifyDeath()).thenReturn(true);
+        when(pluginConfigurationMock.notifyCombatAchievement()).thenReturn(true);
+        when(pluginConfigurationMock.notifyAchievementDiary()).thenReturn(true);
+
         when(pluginConfigurationMock.webhookUrl()).thenReturn("https://discord.com/api/webhooks/test");
 
         when(networkClientMock.newCall(any(Request.class))).thenReturn(networkCallMock);
@@ -69,32 +79,103 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testPetEventSimulation() {
-        ChatMessage simulatedPetMessage = new ChatMessage();
-        simulatedPetMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedPetMessage.setMessage("You feel something weird sneaking into your backpack.");
-
-        testPlugin.onChatMessage(simulatedPetMessage);
-
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("You feel something weird sneaking into your backpack.");
+        testPlugin.onChatMessage(simulatedMessage);
         verify(networkClientMock, times(1)).newCall(any(Request.class));
     }
 
     @Test
     public void testCollectionLogEventSimulation() {
-        ChatMessage simulatedCollectionLogMessage = new ChatMessage();
-        simulatedCollectionLogMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedCollectionLogMessage.setMessage("New item added to your collection log: Abyssal whip");
-
-        testPlugin.onChatMessage(simulatedCollectionLogMessage);
-
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("New item added to your collection log: Abyssal whip");
+        testPlugin.onChatMessage(simulatedMessage);
         verify(networkClientMock, times(1)).newCall(any(Request.class));
     }
 
     @Test
     public void testValuableDropEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testQuestEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testNewRecordEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Fight Cave duration: 33:23 (new personal best).");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testLevelUpEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you just advanced a Strength level.");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testKillEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("You have defeated Zezima.");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testDeathEventSimulation() {
+        ActorDeath simulatedDeath = new ActorDeath(localPlayerMock);
+        testPlugin.onActorDeath(simulatedDeath);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testCombatAchievementEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed an Easy combat task: Defence? What Defence?");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testAchievementDiaryEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations! You have completed all of the easy tasks in the Lumbridge & Draynor area.");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testValuableDropIgnoredWhenCollectionLogTriggers() {
+        ChatMessage simulatedCollectionLogMessage = new ChatMessage();
+        simulatedCollectionLogMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedCollectionLogMessage.setMessage("New item added to your collection log: Abyssal whip");
+
         ChatMessage simulatedValuableDropMessage = new ChatMessage();
         simulatedValuableDropMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedValuableDropMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
 
+        testPlugin.onChatMessage(simulatedCollectionLogMessage);
         testPlugin.onChatMessage(simulatedValuableDropMessage);
 
         verify(networkClientMock, times(1)).newCall(any(Request.class));
