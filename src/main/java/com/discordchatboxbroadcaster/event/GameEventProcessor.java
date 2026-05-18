@@ -12,7 +12,7 @@ import java.util.List;
 
 public abstract class GameEventProcessor {
 
-    protected static final Color HIGHLIGHT_COLOR = new Color(143, 0, 0);
+    protected static final Color HIGHLIGHT_COLOR = new Color(239, 16, 32);
 
     private final List<Notifier> registeredNotifiers;
 

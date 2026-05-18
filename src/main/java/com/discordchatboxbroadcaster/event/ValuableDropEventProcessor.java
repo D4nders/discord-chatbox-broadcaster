@@ -43,7 +43,8 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String dropDetails) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("received a drop: " + dropDetails, Color.BLACK));
+        notificationSegments.add(new ChatSegment("received a drop: ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(dropDetails, HIGHLIGHT_COLOR));
 
         dispatchNotificationSegments(notificationSegments);
     }
