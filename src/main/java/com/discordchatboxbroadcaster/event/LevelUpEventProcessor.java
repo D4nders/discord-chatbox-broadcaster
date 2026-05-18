@@ -3,7 +3,6 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
-import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
 
 import java.awt.Color;
 import java.util.List;
@@ -15,12 +14,10 @@ public class LevelUpEventProcessor extends GameEventProcessor {
     private static final Pattern LEVEL_UP_DETECTION_PATTERN = Pattern.compile("Congratulations, you just advanced a[n]? (.*) level\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
-    private final ChatboxImageGenerator imageGenerator;
 
     public LevelUpEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
-        this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
@@ -42,7 +39,6 @@ public class LevelUpEventProcessor extends GameEventProcessor {
         notificationSegments.add(new ChatSegment("advanced a level: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(skillName, new Color(20, 100, 200)));
 
-        byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
-        dispatchGeneratedImagePayload(renderedImagePayload);
+        dispatchNotificationSegments(notificationSegments);
     }
 }

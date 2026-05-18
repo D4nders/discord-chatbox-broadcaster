@@ -13,15 +13,24 @@ import javax.imageio.ImageIO;
 public class ChatboxImageGenerator {
 
     public byte[] generateChatboxImage(List<ChatSegment> activeChatSegments) {
-        int imageCanvasWidth = 600;
+        BufferedImage metricsCanvas = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D metricsGraphics = metricsCanvas.createGraphics();
+        metricsGraphics.setFont(FontManager.getRunescapeFont());
+
+        int dynamicCanvasWidth = 10;
+        for (ChatSegment currentSegment : activeChatSegments) {
+            dynamicCanvasWidth += metricsGraphics.getFontMetrics().stringWidth(currentSegment.retrieveTextContent());
+        }
+        metricsGraphics.dispose();
+
         int imageCanvasHeight = 30;
-        BufferedImage activeImageCanvas = new BufferedImage(imageCanvasWidth, imageCanvasHeight, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage activeImageCanvas = new BufferedImage(dynamicCanvasWidth, imageCanvasHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D activeGraphicsContext = activeImageCanvas.createGraphics();
 
         activeGraphicsContext.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
         activeGraphicsContext.setColor(new Color(201, 191, 169));
-        activeGraphicsContext.fillRect(0, 0, imageCanvasWidth, imageCanvasHeight);
+        activeGraphicsContext.fillRect(0, 0, dynamicCanvasWidth, imageCanvasHeight);
 
         activeGraphicsContext.setFont(FontManager.getRunescapeFont());
         int currentHorizontalPosition = 5;

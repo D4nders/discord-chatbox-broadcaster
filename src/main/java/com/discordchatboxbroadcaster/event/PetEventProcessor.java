@@ -4,7 +4,6 @@ import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.SharedEventState;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
-import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
 
 import java.awt.Color;
 import java.util.List;
@@ -16,14 +15,12 @@ public class PetEventProcessor extends GameEventProcessor {
     private static final Pattern PET_DETECTION_PATTERN = Pattern.compile("(You have a funny feeling.*|You feel something weird sneaking into your backpack.*)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
-    private final ChatboxImageGenerator imageGenerator;
     private final SharedEventState sharedEventState;
 
     public PetEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration, SharedEventState sharedEventState) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
         this.sharedEventState = sharedEventState;
-        this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
@@ -52,7 +49,6 @@ public class PetEventProcessor extends GameEventProcessor {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
         notificationSegments.add(new ChatSegment(formattedPetMessage, new Color(127, 0, 0)));
 
-        byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
-        dispatchGeneratedImagePayload(renderedImagePayload);
+        dispatchNotificationSegments(notificationSegments);
     }
 }

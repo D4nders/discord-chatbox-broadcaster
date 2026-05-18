@@ -3,7 +3,6 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
-import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
 
 import java.awt.Color;
 import java.util.List;
@@ -15,12 +14,10 @@ public class KillEventProcessor extends GameEventProcessor {
     private static final Pattern KILL_DETECTION_PATTERN = Pattern.compile("You have defeated (.*)\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
-    private final ChatboxImageGenerator imageGenerator;
 
     public KillEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
-        this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
@@ -42,7 +39,6 @@ public class KillEventProcessor extends GameEventProcessor {
         notificationSegments.add(new ChatSegment("defeated a player: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(defeatedTarget, new Color(150, 20, 20)));
 
-        byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
-        dispatchGeneratedImagePayload(renderedImagePayload);
+        dispatchNotificationSegments(notificationSegments);
     }
 }

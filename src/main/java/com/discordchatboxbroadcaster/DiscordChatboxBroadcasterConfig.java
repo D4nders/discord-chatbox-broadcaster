@@ -7,7 +7,13 @@ import net.runelite.client.config.ConfigItem;
 @ConfigGroup("discordchatboxbroadcaster")
 public interface DiscordChatboxBroadcasterConfig extends Config {
 
-	@ConfigItem(keyName = "webhookUrl", name = "Discord Webhook URL", description = "", position = 1)
+	@ConfigItem(
+			keyName = "webhookUrl",
+			name = "Discord Webhook URL",
+			description = "",
+			position = 1,
+			secret = true
+	)
 	default String webhookUrl() { return ""; }
 
 	@ConfigItem(keyName = "notifyPet", name = "Notify Pet (Funny Feeling)", description = "", position = 2)

@@ -55,9 +55,9 @@ public abstract class GameEventProcessor {
         return prefixSegments;
     }
 
-    protected void dispatchGeneratedImagePayload(byte[] generatedImageData) {
+    protected void dispatchNotificationSegments(List<ChatSegment> generatedSegments) {
         for (Notifier currentNotifier : registeredNotifiers) {
-            currentNotifier.dispatchNotification(generatedImageData);
+            currentNotifier.dispatchNotification(generatedSegments);
         }
     }
 }

@@ -3,7 +3,6 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
-import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
 
 import java.awt.Color;
 import java.util.List;
@@ -15,12 +14,10 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
     private static final Pattern ACHIEVEMENT_DIARY_DETECTION_PATTERN = Pattern.compile("Congratulations! You have completed all of the (.*) tasks in the (.*) area\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
-    private final ChatboxImageGenerator imageGenerator;
 
     public AchievementDiaryEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
-        this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
@@ -42,7 +39,6 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
         notificationSegments.add(new ChatSegment("completed a diary: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(tier + " " + area, new Color(20, 100, 200)));
 
-        byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
-        dispatchGeneratedImagePayload(renderedImagePayload);
+        dispatchNotificationSegments(notificationSegments);
     }
 }

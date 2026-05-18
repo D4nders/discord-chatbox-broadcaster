@@ -1,10 +1,9 @@
 package com.discordchatboxbroadcaster.event;
 
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
+import com.discordchatboxbroadcaster.SharedEventState;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
-import com.discordchatboxbroadcaster.render.ChatboxImageGenerator;
-import com.discordchatboxbroadcaster.SharedEventState;
 
 import java.awt.Color;
 import java.util.List;
@@ -16,14 +15,12 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
     private static final Pattern VALUABLE_DROP_DETECTION_PATTERN = Pattern.compile("(?:Valuable drop: |Untradeable drop: )(.*)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
-    private final ChatboxImageGenerator imageGenerator;
     private final SharedEventState sharedEventState;
 
     public ValuableDropEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration, SharedEventState sharedEventState) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
         this.sharedEventState = sharedEventState;
-        this.imageGenerator = new ChatboxImageGenerator();
     }
 
     @Override
@@ -49,7 +46,6 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
         notificationSegments.add(new ChatSegment("received a drop: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(dropDetails, new Color(239, 16, 32)));
 
-        byte[] renderedImagePayload = imageGenerator.generateChatboxImage(notificationSegments);
-        dispatchGeneratedImagePayload(renderedImagePayload);
+        dispatchNotificationSegments(notificationSegments);
     }
 }

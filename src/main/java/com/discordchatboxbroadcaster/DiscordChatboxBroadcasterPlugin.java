@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @PluginDescriptor(
@@ -47,7 +48,11 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Inject
 	OkHttpClient sharedNetworkClient;
 
+	@Inject
+	ScheduledExecutorService scheduledExecutorService;
+
 	private List<GameEventProcessor> activeEventProcessors;
+	private List<Notifier> activeNotifiers;
 
 	@Provides
 	DiscordChatboxBroadcasterConfig provideConfig(ConfigManager configManager) {
@@ -58,26 +63,36 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	protected void startUp() {
 		SharedEventState sharedEventState = new SharedEventState();
 
-		List<Notifier> instantiatedNotifiers = Collections.singletonList(
-				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient)
+		activeNotifiers = Collections.singletonList(
+				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient, scheduledExecutorService)
 		);
 
+		for (Notifier currentNotifier : activeNotifiers) {
+			currentNotifier.initialize();
+		}
+
 		activeEventProcessors = Arrays.asList(
-				new PetEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
-				new CollectionLogEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
-				new ValuableDropEventProcessor(instantiatedNotifiers, pluginConfiguration, sharedEventState),
-				new QuestEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new NewRecordEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new LevelUpEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new KillEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new DeathEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new CombatAchievementEventProcessor(instantiatedNotifiers, pluginConfiguration),
-				new AchievementDiaryEventProcessor(instantiatedNotifiers, pluginConfiguration)
+				new PetEventProcessor(activeNotifiers, pluginConfiguration, sharedEventState),
+				new CollectionLogEventProcessor(activeNotifiers, pluginConfiguration, sharedEventState),
+				new ValuableDropEventProcessor(activeNotifiers, pluginConfiguration, sharedEventState),
+				new QuestEventProcessor(activeNotifiers, pluginConfiguration),
+				new NewRecordEventProcessor(activeNotifiers, pluginConfiguration),
+				new LevelUpEventProcessor(activeNotifiers, pluginConfiguration),
+				new KillEventProcessor(activeNotifiers, pluginConfiguration),
+				new DeathEventProcessor(activeNotifiers, pluginConfiguration),
+				new CombatAchievementEventProcessor(activeNotifiers, pluginConfiguration),
+				new AchievementDiaryEventProcessor(activeNotifiers, pluginConfiguration)
 		);
 	}
 
 	@Override
 	protected void shutDown() {
+		if (activeNotifiers != null) {
+			for (Notifier currentNotifier : activeNotifiers) {
+				currentNotifier.terminate();
+			}
+		}
+		activeNotifiers = null;
 		activeEventProcessors = null;
 	}
 

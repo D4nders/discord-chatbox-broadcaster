@@ -14,9 +14,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,10 +40,12 @@ public class DiscordChatboxBroadcasterPluginTest {
     private DiscordChatboxBroadcasterPlugin testPlugin;
     private AutoCloseable mockitoSession;
     private Player localPlayerMock;
+    private ScheduledExecutorService localExecutorService;
 
     @Before
     public void setUp() {
         mockitoSession = MockitoAnnotations.openMocks(this);
+        localExecutorService = Executors.newSingleThreadScheduledExecutor();
 
         localPlayerMock = mock(Player.class);
         when(localPlayerMock.getName()).thenReturn("TestPlayer");
@@ -65,6 +70,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.gameClient = gameClientMock;
         testPlugin.pluginConfiguration = pluginConfigurationMock;
         testPlugin.sharedNetworkClient = networkClientMock;
+        testPlugin.scheduledExecutorService = localExecutorService;
 
         testPlugin.startUp();
     }
@@ -75,6 +81,7 @@ public class DiscordChatboxBroadcasterPluginTest {
             mockitoSession.close();
         }
         testPlugin.shutDown();
+        localExecutorService.shutdownNow();
     }
 
     @Test
@@ -83,7 +90,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("You feel something weird sneaking into your backpack.");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -92,7 +99,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("New item added to your collection log: Abyssal whip");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -101,7 +108,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -110,7 +117,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -119,7 +126,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Fight Cave duration: 33:23 (new personal best).");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -128,7 +135,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Congratulations, you just advanced a Strength level.");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -137,14 +144,14 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("You have defeated Zezima.");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
     public void testDeathEventSimulation() {
         ActorDeath simulatedDeath = new ActorDeath(localPlayerMock);
         testPlugin.onActorDeath(simulatedDeath);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -153,7 +160,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Congratulations, you've completed an Easy combat task: Defence? What Defence?");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -162,7 +169,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Congratulations! You have completed all of the easy tasks in the Lumbridge & Draynor area.");
         testPlugin.onChatMessage(simulatedMessage);
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
@@ -178,6 +185,6 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.onChatMessage(simulatedCollectionLogMessage);
         testPlugin.onChatMessage(simulatedValuableDropMessage);
 
-        verify(networkClientMock, times(1)).newCall(any(Request.class));
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 }
