@@ -30,14 +30,20 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = COMBAT_ACHIEVEMENT_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1), patternMatcher.group(2));
+            String taskName = patternMatcher.group(2);
+            if (taskName.endsWith(".")) {
+                taskName = taskName.substring(0, taskName.length() - 1);
+            }
+            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1).toLowerCase(), taskName);
         }
     }
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String tier, String taskName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("completed a combat task: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(tier + " - " + taskName, new Color(20, 100, 200)));
+        notificationSegments.add(new ChatSegment("has completed a ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(tier, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment(" combat task: ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(taskName + ".", HIGHLIGHT_COLOR));
 
         dispatchNotificationSegments(notificationSegments);
     }

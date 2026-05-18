@@ -35,9 +35,12 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
     }
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String tier, String area) {
+        String formattedTier = tier.substring(0, 1).toUpperCase() + tier.substring(1).toLowerCase();
+
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("completed a diary: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(tier + " " + area, new Color(20, 100, 200)));
+        notificationSegments.add(new ChatSegment("completed the ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(formattedTier + " " + area, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment(" diary.", Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class ValuableDropEventProcessor extends GameEventProcessor {
 
-    private static final Pattern VALUABLE_DROP_DETECTION_PATTERN = Pattern.compile("(?:Valuable drop: |Untradeable drop: )(.*)");
+    private static final Pattern VALUABLE_DROP_DETECTION_PATTERN = Pattern.compile("(?:Valuable drop: |Untradeable drop: )(?:\\d+ x )?(.*)");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
     private final SharedEventState sharedEventState;
@@ -43,8 +43,7 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String dropDetails) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("received a drop: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(dropDetails, new Color(239, 16, 32)));
+        notificationSegments.add(new ChatSegment("received a drop: " + dropDetails, Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }

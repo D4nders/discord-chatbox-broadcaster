@@ -37,7 +37,7 @@ public class DeathEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("has died.", new Color(150, 20, 20)));
+        notificationSegments.add(new ChatSegment("has died.", Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }

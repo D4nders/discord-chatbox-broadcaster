@@ -37,7 +37,7 @@ public class QuestEventProcessor extends GameEventProcessor {
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String questName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
         notificationSegments.add(new ChatSegment("completed a quest: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(questName, new Color(20, 100, 200)));
+        notificationSegments.add(new ChatSegment(questName, HIGHLIGHT_COLOR));
 
         dispatchNotificationSegments(notificationSegments);
     }

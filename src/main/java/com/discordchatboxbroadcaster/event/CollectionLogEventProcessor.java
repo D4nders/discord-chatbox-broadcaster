@@ -46,8 +46,7 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String itemName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("received a new collection log item: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(itemName, new Color(239, 16, 32)));
+        notificationSegments.add(new ChatSegment("received a new collection log item: " + itemName, Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }

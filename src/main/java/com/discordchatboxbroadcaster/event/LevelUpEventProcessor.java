@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 public class LevelUpEventProcessor extends GameEventProcessor {
 
-    // Regex updated to capture both the skill name (Group 1) and the specific level (Group 2)
     private static final Pattern LEVEL_UP_DETECTION_PATTERN = Pattern.compile("Congratulations, you(?:'ve)? just advanced (?:a|an|your) (.*?) level\\.(?: You are now level (\\d+)\\.)?");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
@@ -41,10 +40,12 @@ public class LevelUpEventProcessor extends GameEventProcessor {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
 
         if (skillLevel != null) {
-            notificationSegments.add(new ChatSegment("has reached " + skillName + " level " + skillLevel + ".", Color.BLACK));
-        } else { //fallback
+            notificationSegments.add(new ChatSegment("has reached ", Color.BLACK));
+            notificationSegments.add(new ChatSegment(skillName + " level " + skillLevel, HIGHLIGHT_COLOR));
+            notificationSegments.add(new ChatSegment(".", Color.BLACK));
+        } else {
             notificationSegments.add(new ChatSegment("advanced a level: ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName, new Color(20, 100, 200)));
+            notificationSegments.add(new ChatSegment(skillName, HIGHLIGHT_COLOR));
         }
 
         dispatchNotificationSegments(notificationSegments);

@@ -37,7 +37,7 @@ public class NewRecordEventProcessor extends GameEventProcessor {
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String recordDetails) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
         notificationSegments.add(new ChatSegment("achieved a new record: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(recordDetails, new Color(20, 100, 200)));
+        notificationSegments.add(new ChatSegment(recordDetails, HIGHLIGHT_COLOR));
 
         dispatchNotificationSegments(notificationSegments);
     }

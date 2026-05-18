@@ -47,7 +47,7 @@ public class PetEventProcessor extends GameEventProcessor {
                 .replace("You feel something weird sneaking into your", "feels something weird sneaking into their");
 
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment(formattedPetMessage, new Color(127, 0, 0)));
+        notificationSegments.add(new ChatSegment(formattedPetMessage, Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }

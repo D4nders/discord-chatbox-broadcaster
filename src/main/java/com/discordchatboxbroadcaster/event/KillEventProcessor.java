@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 
 public class KillEventProcessor extends GameEventProcessor {
 
-    private static final Pattern KILL_DETECTION_PATTERN = Pattern.compile("You have defeated (.*)\\.");
+    private static final Pattern KILL_DETECTION_PATTERN = Pattern.compile("You have defeated (.*?)(?: and received (.*) coins)?\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 
@@ -30,14 +30,21 @@ public class KillEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = KILL_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1));
+            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1), patternMatcher.group(2));
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String defeatedTarget) {
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, String defeatedTarget, String coinsReceived) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
-        notificationSegments.add(new ChatSegment("defeated a player: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(defeatedTarget, new Color(150, 20, 20)));
+        notificationSegments.add(new ChatSegment("has defeated ", Color.BLACK));
+        notificationSegments.add(new ChatSegment(defeatedTarget, HIGHLIGHT_COLOR));
+
+        if (coinsReceived != null) {
+            notificationSegments.add(new ChatSegment(" and received ", Color.BLACK));
+            notificationSegments.add(new ChatSegment(coinsReceived + " coins", HIGHLIGHT_COLOR));
+        }
+
+        notificationSegments.add(new ChatSegment("!", Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);
     }
