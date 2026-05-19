@@ -1,32 +1,39 @@
 name: Feature Request
-about: Suggest an idea for the Discord Chatbox Broadcaster plugin
+description: Suggest an idea for the Discord Chatbox Broadcaster plugin
 title: "[FEATURE] "
-labels: enhancement
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
-      value: "## Feature Request"
+      value: |
+        ## 💡 Feature Request
+        Thanks for taking the time to suggest an idea!
+        
   - type: textarea
     id: problem-description
     attributes:
       label: Is your feature request related to a problem? Please describe.
-      description: "A clear and concise description of what the problem is."
+      description: A clear and concise description of what the problem is.
+      placeholder: "I'm always frustrated when..."
     validations:
-      required: true
+      required: false
+
   - type: textarea
     id: proposed-solution
     attributes:
       label: Describe the solution you'd like
-      description: "A clear and concise description of what you want to happen. Include what new configuration toggles might be needed or what specific chat messages should be tracked."
+      description: A clear and concise description of what you want to happen. Include what new configuration toggles might be needed or what specific chat messages should be tracked.
     validations:
       required: true
+
   - type: textarea
     id: considered-alternatives
     attributes:
       label: Describe alternatives you've considered
-      description: "A clear and concise description of any alternative solutions or features you've considered."
+      description: A clear and concise description of any alternative solutions or features you've considered.
+
   - type: textarea
     id: additional-context
     attributes:
       label: Additional context
-      description: "Add any other context, mockup images, or chatbox screenshots about the feature request here."
+      description: Add any other context, mockup images, or chatbox screenshots about the feature request here.
