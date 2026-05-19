@@ -1,0 +1,72 @@
+name: Bug Report
+description: Create a report to help improve the Discord Chatbox Broadcaster
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        Thanks for taking the time to fill out this bug report! Please ensure you have checked the existing issues before submitting.
+        
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      description: Please verify the following before submitting.
+      options:
+        - label: I have searched the open issues and found no duplicates.
+          required: true
+        - label: I am using the latest version of the Discord Chatbox Broadcaster plugin.
+          required: true
+
+  - type: input
+    id: runelite-version
+    attributes:
+      label: RuneLite Version
+      description: What version of RuneLite are you using?
+      placeholder: "e.g., 1.10.x"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: What operating system are you playing on?
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "The plugin isn't firing a webhook when I receive a collection log drop..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: How do you trigger this bug? Please walk us through it step by step.
+      value: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Client Logs
+      description: Please paste any relevant errors from your `client.log` located in `.runelite/logs/client.log`.
+      render: bash
+    validations:
+      required: false
