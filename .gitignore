@@ -7,3 +7,9 @@ build
 nbactions.xml
 nb-configuration.xml
 nbproject/
+
+# gemini-cli settings
+.gemini/
+
+# GitHub App credentials
+gha-creds-*.json
