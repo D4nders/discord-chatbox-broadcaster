@@ -3,6 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import net.runelite.api.Client;
+import net.runelite.api.NPC;
 
 import java.awt.Color;
 import java.util.List;
@@ -14,10 +16,12 @@ public class KillEventProcessor extends GameEventProcessor {
     private static final Pattern KILL_DETECTION_PATTERN = Pattern.compile("You have defeated (.*?)(?: and received (.*) coins)?\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
+    private final Client gameClient;
 
-    public KillEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration) {
+    public KillEventProcessor(List<Notifier> registeredNotifiers, DiscordChatboxBroadcasterConfig pluginConfiguration, Client gameClient) {
         super(registeredNotifiers);
         this.pluginConfiguration = pluginConfiguration;
+        this.gameClient = gameClient;
     }
 
     @Override
@@ -30,8 +34,25 @@ public class KillEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = KILL_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1), patternMatcher.group(2));
+            String defeatedTarget = patternMatcher.group(1);
+            String coinsReceived = patternMatcher.group(2);
+
+            if (isNpcTarget(defeatedTarget)) {
+                return;
+            }
+
+            executeNotificationSequence(activePlayerName, activeClanName, defeatedTarget, coinsReceived);
         }
+    }
+
+    private boolean isNpcTarget(String targetName) {
+        for (NPC activeNpc : gameClient.getNpcs()) {
+            String npcName = activeNpc.getName();
+            if (npcName != null && npcName.equals(targetName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, String defeatedTarget, String coinsReceived) {

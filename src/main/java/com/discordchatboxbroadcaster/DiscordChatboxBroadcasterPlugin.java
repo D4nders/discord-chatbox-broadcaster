@@ -78,7 +78,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 				new QuestEventProcessor(activeNotifiers, pluginConfiguration),
 				new NewRecordEventProcessor(activeNotifiers, pluginConfiguration),
 				new LevelUpEventProcessor(activeNotifiers, pluginConfiguration),
-				new KillEventProcessor(activeNotifiers, pluginConfiguration),
+				new KillEventProcessor(activeNotifiers, pluginConfiguration, gameClient),
 				new DeathEventProcessor(activeNotifiers, pluginConfiguration),
 				new CombatAchievementEventProcessor(activeNotifiers, pluginConfiguration),
 				new AchievementDiaryEventProcessor(activeNotifiers, pluginConfiguration)

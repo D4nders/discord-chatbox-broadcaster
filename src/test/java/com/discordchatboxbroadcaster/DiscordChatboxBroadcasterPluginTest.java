@@ -2,6 +2,7 @@ package com.discordchatboxbroadcaster;
 
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
@@ -14,6 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Collections;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -50,6 +52,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         localPlayerMock = mock(Player.class);
         when(localPlayerMock.getName()).thenReturn("TestPlayer");
         when(gameClientMock.getLocalPlayer()).thenReturn(localPlayerMock);
+        when(gameClientMock.getNpcs()).thenReturn(Collections.emptyList());
 
         when(pluginConfigurationMock.notifyPet()).thenReturn(true);
         when(pluginConfigurationMock.notifyCollectionLog()).thenReturn(true);
@@ -186,5 +189,19 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.onChatMessage(simulatedValuableDropMessage);
 
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testNpcKillIgnored() {
+        NPC krukNpcMock = mock(NPC.class);
+        when(krukNpcMock.getName()).thenReturn("Kruk");
+        when(gameClientMock.getNpcs()).thenReturn(Collections.singletonList(krukNpcMock));
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("You have defeated Kruk.");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(0)).newCall(any(Request.class));
     }
 }
