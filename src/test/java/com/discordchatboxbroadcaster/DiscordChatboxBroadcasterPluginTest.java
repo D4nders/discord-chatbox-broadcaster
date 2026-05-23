@@ -2,10 +2,14 @@ package com.discordchatboxbroadcaster;
 
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.VarbitID;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -168,10 +172,39 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testAchievementDiaryEventSimulation() {
-        ChatMessage simulatedMessage = new ChatMessage();
-        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("Congratulations! You have completed all of the easy tasks in the Lumbridge & Draynor area.");
-        testPlugin.onChatMessage(simulatedMessage);
+        GameStateChanged simulatedLoginState = mock(GameStateChanged.class);
+        when(simulatedLoginState.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
+        testPlugin.onGameStateChanged(simulatedLoginState);
+
+        VarbitChanged initialLoadEvent = mock(VarbitChanged.class);
+        when(initialLoadEvent.getVarbitId()).thenReturn(VarbitID.LUMBRIDGE_DIARY_EASY_COMPLETE);
+        when(initialLoadEvent.getValue()).thenReturn(0);
+        testPlugin.onVarbitChanged(initialLoadEvent);
+
+        VarbitChanged completionEvent = mock(VarbitChanged.class);
+        when(completionEvent.getVarbitId()).thenReturn(VarbitID.LUMBRIDGE_DIARY_EASY_COMPLETE);
+        when(completionEvent.getValue()).thenReturn(1);
+        testPlugin.onVarbitChanged(completionEvent);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testKaramjaDiaryVarbitSimulation() {
+        GameStateChanged simulatedLoginState = mock(GameStateChanged.class);
+        when(simulatedLoginState.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
+        testPlugin.onGameStateChanged(simulatedLoginState);
+
+        VarbitChanged initialLoadEvent = mock(VarbitChanged.class);
+        when(initialLoadEvent.getVarbitId()).thenReturn(VarbitID.ATJUN_EASY_DONE);
+        when(initialLoadEvent.getValue()).thenReturn(1);
+        testPlugin.onVarbitChanged(initialLoadEvent);
+
+        VarbitChanged completionEvent = mock(VarbitChanged.class);
+        when(completionEvent.getVarbitId()).thenReturn(VarbitID.ATJUN_EASY_DONE);
+        when(completionEvent.getValue()).thenReturn(2);
+        testPlugin.onVarbitChanged(completionEvent);
+
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 

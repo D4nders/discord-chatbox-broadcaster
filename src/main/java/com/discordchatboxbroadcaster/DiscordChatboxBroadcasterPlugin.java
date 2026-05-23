@@ -21,6 +21,8 @@ import net.runelite.api.clan.ClanChannel;
 import net.runelite.api.clan.ClanID;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -133,6 +135,37 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
 			targetedProcessor.evaluateActorDeath(incomingDeathEvent, activePlayerName, activeClanName, currentClientTick);
+		}
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged incomingVarbitEvent) {
+		Player localPlayerEntity = gameClient.getLocalPlayer();
+
+		if (localPlayerEntity == null) {
+			return;
+		}
+
+		String activePlayerName = localPlayerEntity.getName();
+
+		ClanChannel activeClanChannel = gameClient.getClanChannel(ClanID.CLAN);
+		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
+
+		int currentClientTick = gameClient.getTickCount();
+
+		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
+			targetedProcessor.evaluateVarbitChanged(incomingVarbitEvent.getVarbitId(), incomingVarbitEvent.getValue(), activePlayerName, activeClanName, currentClientTick);
+		}
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged incomingGameStateEvent) {
+		if (activeEventProcessors == null) {
+			return;
+		}
+
+		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
+			targetedProcessor.evaluateGameStateChanged(incomingGameStateEvent.getGameState());
 		}
 	}
 }

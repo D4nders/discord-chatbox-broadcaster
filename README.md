@@ -30,3 +30,7 @@ The plugin currently supports broadcasting the following events:
 4. Open the RuneLite configuration panel and search for **Discord Chatbox Broadcaster**.
 5. Paste your copied URL into the **Discord Webhook URL** field.
 6. Toggle the specific events you wish to broadcast!
+
+## Credit
+
+* Achievement Diary varbit mapping logic inspired by [m0bilebtw's C Engineer Completed plugin](https://github.com/m0bilebtw/c-engineer-completed).

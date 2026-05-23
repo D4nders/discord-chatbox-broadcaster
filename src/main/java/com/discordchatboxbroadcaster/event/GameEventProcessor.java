@@ -3,6 +3,7 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 import net.runelite.api.ChatMessageType;
+import net.runelite.api.GameState;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 
@@ -36,10 +37,15 @@ public abstract class GameEventProcessor {
         ChatMessageType incomingMessageType = incomingChatMessage.getType();
         String typeName = incomingMessageType.name();
 
-        if (incomingMessageType != ChatMessageType.GAMEMESSAGE
-                && incomingMessageType != ChatMessageType.SPAM
-                && !typeName.contains("LEVELUP")
-                && !typeName.contains("LEVEL_UP")) {
+        boolean isGameMessage = incomingMessageType == ChatMessageType.GAMEMESSAGE || incomingMessageType == ChatMessageType.SPAM;
+        boolean isLevelUp = typeName.contains("LEVELUP") || typeName.contains("LEVEL_UP");
+
+        if (!isGameMessage && !isLevelUp) {
+            return;
+        }
+
+        String senderName = incomingChatMessage.getName();
+        if (senderName != null && !senderName.trim().isEmpty()) {
             return;
         }
 
@@ -48,6 +54,12 @@ public abstract class GameEventProcessor {
     }
 
     public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, int currentTick) {
+    }
+
+    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, int currentTick) {
+    }
+
+    public void evaluateGameStateChanged(GameState newGameState) {
     }
 
     protected List<ChatSegment> buildPlayerClanPrefixSegments(String activePlayerName, String activeClanName) {
