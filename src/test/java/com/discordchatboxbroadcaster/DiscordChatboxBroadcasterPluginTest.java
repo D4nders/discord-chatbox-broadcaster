@@ -192,6 +192,24 @@ public class DiscordChatboxBroadcasterPluginTest {
     }
 
     @Test
+    public void testMultipleCollectionLogsProcessConcurrently() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedLogMessageOne = new ChatMessage();
+        simulatedLogMessageOne.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedLogMessageOne.setMessage("New item added to your collection log: Guthix cloak");
+
+        ChatMessage simulatedLogMessageTwo = new ChatMessage();
+        simulatedLogMessageTwo.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedLogMessageTwo.setMessage("New item added to your collection log: Adamant shield (h5)");
+
+        testPlugin.onChatMessage(simulatedLogMessageOne);
+        testPlugin.onChatMessage(simulatedLogMessageTwo);
+
+        verify(networkClientMock, timeout(2000).times(2)).newCall(any(Request.class));
+    }
+
+    @Test
     public void testNpcKillIgnored() {
         NPC krukNpcMock = mock(NPC.class);
         when(krukNpcMock.getName()).thenReturn("Kruk");

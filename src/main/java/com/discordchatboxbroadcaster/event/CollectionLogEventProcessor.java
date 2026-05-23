@@ -34,9 +34,6 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
 
         if (patternMatcher.find()) {
             if (currentTick != -1) {
-                if (sharedEventState.isWithinCollectionLogWindow(currentTick)) {
-                    return;
-                }
                 sharedEventState.registerCollectionLogDrop(currentTick);
             }
 
