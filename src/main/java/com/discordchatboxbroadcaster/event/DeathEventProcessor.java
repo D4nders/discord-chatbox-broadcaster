@@ -6,6 +6,7 @@ import com.discordchatboxbroadcaster.render.ChatSegment;
 import net.runelite.api.events.ActorDeath;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class DeathEventProcessor extends GameEventProcessor {
@@ -23,20 +24,20 @@ public class DeathEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
     @Override
-    public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, int currentTick) {
+    public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         if (!isFeatureEnabled() || !canProcessEvent(currentTick)) {
             return;
         }
 
-        executeNotificationSequence(activePlayerName, activeClanName);
+        executeNotificationSequence(activePlayerName, activeClanName, playerIcon);
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
         notificationSegments.add(new ChatSegment("has died.", Color.BLACK));
 
         dispatchNotificationSegments(notificationSegments);

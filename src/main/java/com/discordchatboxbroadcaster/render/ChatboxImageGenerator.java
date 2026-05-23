@@ -19,7 +19,11 @@ public class ChatboxImageGenerator {
 
         int dynamicCanvasWidth = 10;
         for (ChatSegment currentSegment : activeChatSegments) {
-            dynamicCanvasWidth += metricsGraphics.getFontMetrics().stringWidth(currentSegment.retrieveTextContent());
+            if (currentSegment.isImage()) {
+                dynamicCanvasWidth += currentSegment.retrieveInlineImage().getWidth() + 2;
+            } else {
+                dynamicCanvasWidth += metricsGraphics.getFontMetrics().stringWidth(currentSegment.retrieveTextContent());
+            }
         }
         metricsGraphics.dispose();
 
@@ -45,9 +49,16 @@ public class ChatboxImageGenerator {
     }
 
     private int renderIndividualSegment(Graphics2D graphicsContext, ChatSegment targetSegment, int horizontalCoordinate, int verticalCoordinate) {
-        graphicsContext.setColor(targetSegment.retrieveTextColor());
-        graphicsContext.drawString(targetSegment.retrieveTextContent(), horizontalCoordinate, verticalCoordinate);
-        return horizontalCoordinate + graphicsContext.getFontMetrics().stringWidth(targetSegment.retrieveTextContent());
+        if (targetSegment.isImage()) {
+            BufferedImage inlineImage = targetSegment.retrieveInlineImage();
+            int verticalOffset = verticalCoordinate - inlineImage.getHeight() + 1;
+            graphicsContext.drawImage(inlineImage, horizontalCoordinate, verticalOffset, null);
+            return horizontalCoordinate + inlineImage.getWidth() + 2;
+        } else {
+            graphicsContext.setColor(targetSegment.retrieveTextColor());
+            graphicsContext.drawString(targetSegment.retrieveTextContent(), horizontalCoordinate, verticalCoordinate);
+            return horizontalCoordinate + graphicsContext.getFontMetrics().stringWidth(targetSegment.retrieveTextContent());
+        }
     }
 
     private byte[] convertImageToByteArray(BufferedImage targetImageCanvas) {

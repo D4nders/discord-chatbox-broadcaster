@@ -16,7 +16,11 @@ import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
+import net.runelite.api.IconID;
+import net.runelite.api.IndexedSprite;
 import net.runelite.api.Player;
+import net.runelite.api.Varbits;
 import net.runelite.api.clan.ClanChannel;
 import net.runelite.api.clan.ClanID;
 import net.runelite.api.events.ActorDeath;
@@ -30,6 +34,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 import okhttp3.OkHttpClient;
 
 import javax.inject.Inject;
+import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +60,9 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
+
+	private BufferedImage cachedPlayerIcon;
+	private int cachedAccountType = -1;
 
 	@Provides
 	DiscordChatboxBroadcasterConfig provideConfig(ConfigManager configManager) {
@@ -96,6 +104,69 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		}
 		activeNotifiers = null;
 		activeEventProcessors = null;
+		cachedPlayerIcon = null;
+		cachedAccountType = -1;
+	}
+
+	private BufferedImage retrievePlayerIcon() {
+		int activeAccountType = gameClient.getVarbitValue(Varbits.ACCOUNT_TYPE);
+
+		if (activeAccountType == 0) {
+			return null;
+		}
+
+		if (cachedPlayerIcon != null && activeAccountType == cachedAccountType) {
+			return cachedPlayerIcon;
+		}
+
+		int targetIconIndex = -1;
+		switch (activeAccountType) {
+			case 1: targetIconIndex = IconID.IRONMAN.getIndex(); break;
+			case 2: targetIconIndex = IconID.ULTIMATE_IRONMAN.getIndex(); break;
+			case 3: targetIconIndex = IconID.HARDCORE_IRONMAN.getIndex(); break;
+			case 4: targetIconIndex = IconID.GROUP_IRONMAN.getIndex(); break;
+			case 5: targetIconIndex = IconID.HARDCORE_GROUP_IRONMAN.getIndex(); break;
+			case 6: targetIconIndex = IconID.UNRANKED_GROUP_IRONMAN.getIndex(); break;
+			default: return null;
+		}
+
+		IndexedSprite[] activeModIcons = gameClient.getModIcons();
+		if (activeModIcons != null && targetIconIndex >= 0 && targetIconIndex < activeModIcons.length) {
+			IndexedSprite targetSprite = activeModIcons[targetIconIndex];
+			if (targetSprite != null) {
+				cachedPlayerIcon = convertIndexedSpriteToBufferedImage(targetSprite);
+				cachedAccountType = activeAccountType;
+				return cachedPlayerIcon;
+			}
+		}
+
+		return null;
+	}
+
+	private BufferedImage convertIndexedSpriteToBufferedImage(IndexedSprite sourceSprite) {
+		int imageWidth = sourceSprite.getWidth();
+		int imageHeight = sourceSprite.getHeight();
+
+		if (imageWidth <= 0 || imageHeight <= 0) {
+			return null;
+		}
+
+		int[] translatedPixels = new int[imageWidth * imageHeight];
+		byte[] rawPixels = sourceSprite.getPixels();
+		int[] colorPalette = sourceSprite.getPalette();
+
+		for (int index = 0; index < rawPixels.length; index++) {
+			int paletteIndex = rawPixels[index] & 0xFF;
+			if (paletteIndex != 0 && paletteIndex < colorPalette.length) {
+				translatedPixels[index] = colorPalette[paletteIndex] | 0xFF000000;
+			} else {
+				translatedPixels[index] = 0;
+			}
+		}
+
+		BufferedImage convertedImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+		convertedImage.setRGB(0, 0, imageWidth, imageHeight, translatedPixels, 0, imageWidth);
+		return convertedImage;
 	}
 
 	@Subscribe
@@ -112,9 +183,10 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
 
 		int currentClientTick = gameClient.getTickCount();
+		BufferedImage activePlayerIcon = retrievePlayerIcon();
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
-			targetedProcessor.evaluateIncomingEvent(incomingChatMessage, activePlayerName, activeClanName, currentClientTick);
+			targetedProcessor.evaluateIncomingEvent(incomingChatMessage, activePlayerName, activeClanName, activePlayerIcon, currentClientTick);
 		}
 	}
 
@@ -132,9 +204,10 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
 
 		int currentClientTick = gameClient.getTickCount();
+		BufferedImage activePlayerIcon = retrievePlayerIcon();
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
-			targetedProcessor.evaluateActorDeath(incomingDeathEvent, activePlayerName, activeClanName, currentClientTick);
+			targetedProcessor.evaluateActorDeath(incomingDeathEvent, activePlayerName, activeClanName, activePlayerIcon, currentClientTick);
 		}
 	}
 
@@ -152,14 +225,20 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
 
 		int currentClientTick = gameClient.getTickCount();
+		BufferedImage activePlayerIcon = retrievePlayerIcon();
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
-			targetedProcessor.evaluateVarbitChanged(incomingVarbitEvent.getVarbitId(), incomingVarbitEvent.getValue(), activePlayerName, activeClanName, currentClientTick);
+			targetedProcessor.evaluateVarbitChanged(incomingVarbitEvent.getVarbitId(), incomingVarbitEvent.getValue(), activePlayerName, activeClanName, activePlayerIcon, currentClientTick);
 		}
 	}
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged incomingGameStateEvent) {
+		if (incomingGameStateEvent.getGameState() == GameState.LOGIN_SCREEN || incomingGameStateEvent.getGameState() == GameState.HOPPING) {
+			cachedPlayerIcon = null;
+			cachedAccountType = -1;
+		}
+
 		if (activeEventProcessors == null) {
 			return;
 		}

@@ -57,6 +57,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(localPlayerMock.getName()).thenReturn("TestPlayer");
         when(gameClientMock.getLocalPlayer()).thenReturn(localPlayerMock);
         when(gameClientMock.getNpcs()).thenReturn(Collections.emptyList());
+        when(gameClientMock.getVarbitValue(net.runelite.api.Varbits.ACCOUNT_TYPE)).thenReturn(0);
 
         when(pluginConfigurationMock.notifyPet()).thenReturn(true);
         when(pluginConfigurationMock.notifyCollectionLog()).thenReturn(true);

@@ -7,6 +7,7 @@ import net.runelite.api.GameState;
 import net.runelite.api.gameval.VarbitID;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,11 +122,11 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
     @Override
-    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, int currentTick) {
+    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         if (!isFeatureEnabled()) {
             return;
         }
@@ -140,7 +141,7 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
         previousVarbitStates.put(varbitId, newValue);
 
         if (previousValue != -1 && previousValue != newValue && newValue == diaryMetadata.getCompletionValue()) {
-            executeNotificationSequence(activePlayerName, activeClanName, diaryMetadata.getTier(), diaryMetadata.getArea());
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, diaryMetadata.getTier(), diaryMetadata.getArea());
         }
     }
 
@@ -151,8 +152,8 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String tier, String area) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String tier, String area) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
         notificationSegments.add(new ChatSegment("completed the ", Color.BLACK));
         notificationSegments.add(new ChatSegment(tier + " " + area, HIGHLIGHT_COLOR));
         notificationSegments.add(new ChatSegment(" diary.", Color.BLACK));

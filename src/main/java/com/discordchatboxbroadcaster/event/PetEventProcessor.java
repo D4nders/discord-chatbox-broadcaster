@@ -6,6 +6,7 @@ import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,7 @@ public class PetEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         Matcher patternMatcher = PET_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
@@ -51,17 +52,17 @@ public class PetEventProcessor extends GameEventProcessor {
                 kcOrXp = kcOrXp.replaceAll("\\.+$", "").trim();
             }
 
-            executeNotificationSequence(activePlayerName, activeClanName, baseMessage, petName, kcOrXp);
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, baseMessage, petName, kcOrXp);
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String baseMessage, String petName, String kcOrXp) {
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String baseMessage, String petName, String kcOrXp) {
         String formattedPetMessage = baseMessage
                 .replace("You have a funny feeling like you're", "has a funny feeling like they're")
                 .replace("You feel something weird sneaking into your", "feels something weird sneaking into their")
                 .replace("You have a funny feeling like you would have been", "has a funny feeling like they would have been");
 
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
 
         if (petName != null && !petName.isEmpty()) {
             notificationSegments.add(new ChatSegment(formattedPetMessage + ": ", Color.BLACK));

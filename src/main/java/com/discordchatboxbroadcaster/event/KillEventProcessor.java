@@ -7,6 +7,7 @@ import net.runelite.api.Client;
 import net.runelite.api.NPC;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,7 +31,7 @@ public class KillEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         Matcher patternMatcher = KILL_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
@@ -41,7 +42,7 @@ public class KillEventProcessor extends GameEventProcessor {
                 return;
             }
 
-            executeNotificationSequence(activePlayerName, activeClanName, defeatedTarget, coinsReceived);
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, defeatedTarget, coinsReceived);
         }
     }
 
@@ -55,8 +56,8 @@ public class KillEventProcessor extends GameEventProcessor {
         return false;
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String defeatedTarget, String coinsReceived) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String defeatedTarget, String coinsReceived) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
         notificationSegments.add(new ChatSegment("has defeated ", Color.BLACK));
         notificationSegments.add(new ChatSegment(defeatedTarget, HIGHLIGHT_COLOR));
 

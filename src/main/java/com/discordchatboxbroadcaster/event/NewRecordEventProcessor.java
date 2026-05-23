@@ -5,6 +5,7 @@ import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,16 +27,16 @@ public class NewRecordEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         Matcher patternMatcher = RECORD_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1));
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1));
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String recordDetails) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String recordDetails) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
         notificationSegments.add(new ChatSegment("achieved a new record: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(recordDetails, HIGHLIGHT_COLOR));
 

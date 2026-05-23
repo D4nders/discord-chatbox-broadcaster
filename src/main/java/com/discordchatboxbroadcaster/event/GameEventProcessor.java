@@ -8,6 +8,7 @@ import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,13 +24,13 @@ public abstract class GameEventProcessor {
 
     protected abstract boolean isFeatureEnabled();
 
-    protected abstract void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick);
+    protected abstract void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick);
 
     protected boolean canProcessEvent(int currentTick) {
         return true;
     }
 
-    public void evaluateIncomingEvent(ChatMessage incomingChatMessage, String activePlayerName, String activeClanName, int currentTick) {
+    public void evaluateIncomingEvent(ChatMessage incomingChatMessage, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         if (!isFeatureEnabled() || !canProcessEvent(currentTick)) {
             return;
         }
@@ -50,23 +51,27 @@ public abstract class GameEventProcessor {
         }
 
         String sanitizedMessageContent = incomingChatMessage.getMessage().replaceAll("<[^>]+>", "");
-        processSanitizedMessage(sanitizedMessageContent, activePlayerName, activeClanName, currentTick);
+        processSanitizedMessage(sanitizedMessageContent, activePlayerName, activeClanName, playerIcon, currentTick);
     }
 
-    public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, int currentTick) {
+    public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
-    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, int currentTick) {
+    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
     public void evaluateGameStateChanged(GameState newGameState) {
     }
 
-    protected List<ChatSegment> buildPlayerClanPrefixSegments(String activePlayerName, String activeClanName) {
+    protected List<ChatSegment> buildPlayerClanPrefixSegments(String activePlayerName, String activeClanName, BufferedImage playerIcon) {
         List<ChatSegment> prefixSegments = new ArrayList<>();
 
         if (activeClanName != null && !activeClanName.isEmpty()) {
             prefixSegments.add(new ChatSegment("[" + activeClanName + "] ", Color.BLUE));
+        }
+
+        if (playerIcon != null) {
+            prefixSegments.add(new ChatSegment(playerIcon));
         }
 
         prefixSegments.add(new ChatSegment(activePlayerName + " ", Color.BLACK));

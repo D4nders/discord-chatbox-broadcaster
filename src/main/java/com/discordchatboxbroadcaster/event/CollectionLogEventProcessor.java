@@ -6,6 +6,7 @@ import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,7 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         Matcher patternMatcher = COLLECTION_LOG_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
@@ -37,12 +38,12 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
                 sharedEventState.registerCollectionLogDrop(currentTick);
             }
 
-            executeNotificationSequence(activePlayerName, activeClanName, patternMatcher.group(1));
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1));
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String itemName) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String itemName) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
         notificationSegments.add(new ChatSegment("received a new collection log item: ", Color.BLACK));
         notificationSegments.add(new ChatSegment(itemName, HIGHLIGHT_COLOR));
 

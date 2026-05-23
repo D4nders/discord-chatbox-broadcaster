@@ -5,6 +5,7 @@ import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 
 import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,18 +27,18 @@ public class LevelUpEventProcessor extends GameEventProcessor {
     }
 
     @Override
-    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, int currentTick) {
+    protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         Matcher patternMatcher = LEVEL_UP_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
             String skillName = patternMatcher.group(1);
             String skillLevel = patternMatcher.group(2);
-            executeNotificationSequence(activePlayerName, activeClanName, skillName, skillLevel);
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, skillName, skillLevel);
         }
     }
 
-    private void executeNotificationSequence(String activePlayerName, String activeClanName, String skillName, String skillLevel) {
-        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName);
+    private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String skillName, String skillLevel) {
+        List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
 
         if (skillLevel != null) {
             notificationSegments.add(new ChatSegment("has reached ", Color.BLACK));
