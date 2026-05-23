@@ -45,4 +45,12 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 
 	@ConfigItem(keyName = "notifyAchievementDiary", name = "Notify Achievement Diary", description = "", position = 11)
 	default boolean notifyAchievementDiary() { return true; }
+
+	@ConfigItem(
+			keyName = "disableInTemporaryGameModes",
+			name = "Disable in Temp Game Modes",
+			description = "Disables all plugin functionality in temporary game modes (Leagues, Deadman, etc.)",
+			position = 12
+	)
+	default boolean disableInTemporaryGameModes() { return false; }
 }

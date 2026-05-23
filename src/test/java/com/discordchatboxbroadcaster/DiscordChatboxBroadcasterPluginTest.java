@@ -3,8 +3,11 @@ package com.discordchatboxbroadcaster;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.IconID;
+import net.runelite.api.IndexedSprite;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
+import net.runelite.api.WorldType;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
@@ -20,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -58,6 +62,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(gameClientMock.getLocalPlayer()).thenReturn(localPlayerMock);
         when(gameClientMock.getNpcs()).thenReturn(Collections.emptyList());
         when(gameClientMock.getVarbitValue(net.runelite.api.Varbits.ACCOUNT_TYPE)).thenReturn(0);
+        when(gameClientMock.getWorldType()).thenReturn(EnumSet.noneOf(WorldType.class));
 
         when(pluginConfigurationMock.notifyPet()).thenReturn(true);
         when(pluginConfigurationMock.notifyCollectionLog()).thenReturn(true);
@@ -69,6 +74,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(pluginConfigurationMock.notifyDeath()).thenReturn(true);
         when(pluginConfigurationMock.notifyCombatAchievement()).thenReturn(true);
         when(pluginConfigurationMock.notifyAchievementDiary()).thenReturn(true);
+        when(pluginConfigurationMock.disableInTemporaryGameModes()).thenReturn(false);
 
         when(pluginConfigurationMock.webhookUrl()).thenReturn("https://discord.com/api/webhooks/test");
 
@@ -252,6 +258,19 @@ public class DiscordChatboxBroadcasterPluginTest {
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("You have defeated Kruk.");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(0)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testTemporaryGameModeIsIgnored() {
+        when(pluginConfigurationMock.disableInTemporaryGameModes()).thenReturn(true);
+        when(gameClientMock.getWorldType()).thenReturn(EnumSet.of(WorldType.SEASONAL));
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("You feel something weird sneaking into your backpack.");
         testPlugin.onChatMessage(simulatedMessage);
 
         verify(networkClientMock, timeout(2000).times(0)).newCall(any(Request.class));

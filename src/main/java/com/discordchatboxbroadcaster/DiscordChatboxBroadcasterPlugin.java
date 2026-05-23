@@ -21,6 +21,7 @@ import net.runelite.api.IconID;
 import net.runelite.api.IndexedSprite;
 import net.runelite.api.Player;
 import net.runelite.api.Varbits;
+import net.runelite.api.WorldType;
 import net.runelite.api.clan.ClanChannel;
 import net.runelite.api.clan.ClanID;
 import net.runelite.api.events.ActorDeath;
@@ -37,6 +38,7 @@ import javax.inject.Inject;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -108,6 +110,24 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		cachedAccountType = -1;
 	}
 
+	private boolean shouldSkipEvent() {
+		if (!pluginConfiguration.disableInTemporaryGameModes()) {
+			return false;
+		}
+
+		EnumSet<WorldType> worldTypes = gameClient.getWorldType();
+		if (worldTypes == null) {
+			return false;
+		}
+
+		return worldTypes.contains(WorldType.SEASONAL) ||
+				worldTypes.contains(WorldType.DEADMAN) ||
+				worldTypes.contains(WorldType.TOURNAMENT_WORLD) ||
+				worldTypes.contains(WorldType.NOSAVE_MODE) ||
+				worldTypes.contains(WorldType.QUEST_SPEEDRUNNING) ||
+				worldTypes.contains(WorldType.FRESH_START_WORLD);
+	}
+
 	private BufferedImage retrievePlayerIcon() {
 		int activeAccountType = gameClient.getVarbitValue(Varbits.ACCOUNT_TYPE);
 
@@ -171,6 +191,10 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	@Subscribe
 	public void onChatMessage(ChatMessage incomingChatMessage) {
+		if (shouldSkipEvent()) {
+			return;
+		}
+
 		Player localPlayerEntity = gameClient.getLocalPlayer();
 
 		if (localPlayerEntity == null) {
@@ -192,6 +216,10 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	@Subscribe
 	public void onActorDeath(ActorDeath incomingDeathEvent) {
+		if (shouldSkipEvent()) {
+			return;
+		}
+
 		Player localPlayerEntity = gameClient.getLocalPlayer();
 
 		if (localPlayerEntity == null || incomingDeathEvent.getActor() != localPlayerEntity) {
@@ -213,6 +241,10 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged incomingVarbitEvent) {
+		if (shouldSkipEvent()) {
+			return;
+		}
+
 		Player localPlayerEntity = gameClient.getLocalPlayer();
 
 		if (localPlayerEntity == null) {
