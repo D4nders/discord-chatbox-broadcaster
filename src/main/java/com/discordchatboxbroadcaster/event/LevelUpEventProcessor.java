@@ -12,7 +12,9 @@ import java.util.regex.Pattern;
 
 public class LevelUpEventProcessor extends GameEventProcessor {
 
-    private static final Pattern LEVEL_UP_DETECTION_PATTERN = Pattern.compile("Congratulations, you(?:'ve)? just advanced (?:a|an|your) (.*?) level\\.(?: You are now level (\\d+)\\.)?");
+    private static final Pattern MAX_LEVEL_PATTERN = Pattern.compile("Congratulations, you(?:'ve)? reached the highest possible (.*?) level of 99\\.");
+    private static final Pattern STANDARD_LEVEL_NAME_PATTERN = Pattern.compile("Congratulations, you(?:'ve)? just advanced (?:a|an|your) (.*?) level\\.");
+    private static final Pattern STANDARD_LEVEL_NUMBER_PATTERN = Pattern.compile("You are now level (\\d+)\\.");
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 
@@ -28,11 +30,25 @@ public class LevelUpEventProcessor extends GameEventProcessor {
 
     @Override
     protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
-        Matcher patternMatcher = LEVEL_UP_DETECTION_PATTERN.matcher(sanitizedMessageContent);
+        Matcher maxLevelMatcher = MAX_LEVEL_PATTERN.matcher(sanitizedMessageContent);
 
-        if (patternMatcher.find()) {
-            String skillName = patternMatcher.group(1);
-            String skillLevel = patternMatcher.group(2);
+        if (maxLevelMatcher.find()) {
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, maxLevelMatcher.group(1), "99");
+            return;
+        }
+
+        Matcher skillNameMatcher = STANDARD_LEVEL_NAME_PATTERN.matcher(sanitizedMessageContent);
+
+        if (skillNameMatcher.find()) {
+            String skillName = skillNameMatcher.group(1);
+            String skillLevel = null;
+
+            Matcher skillLevelMatcher = STANDARD_LEVEL_NUMBER_PATTERN.matcher(sanitizedMessageContent);
+
+            if (skillLevelMatcher.find()) {
+                skillLevel = skillLevelMatcher.group(1);
+            }
+
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, skillName, skillLevel);
         }
     }

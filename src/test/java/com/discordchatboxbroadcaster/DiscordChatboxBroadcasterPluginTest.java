@@ -144,10 +144,19 @@ public class DiscordChatboxBroadcasterPluginTest {
     }
 
     @Test
-    public void testLevelUpEventSimulation() {
+    public void testStandardLevelEightyEventSimulation() {
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("Congratulations, you've just advanced your Construction level. You are now level 81.");
+        simulatedMessage.setMessage("Congratulations, you just advanced a Strength level. You are now level 80.");
+        testPlugin.onChatMessage(simulatedMessage);
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testMaxLevelNinetyNineEventSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've reached the highest possible Strength level of 99.");
         testPlugin.onChatMessage(simulatedMessage);
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
