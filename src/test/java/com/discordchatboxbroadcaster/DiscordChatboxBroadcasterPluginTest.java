@@ -100,10 +100,16 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testPetEventSimulation() {
-        ChatMessage simulatedMessage = new ChatMessage();
-        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("You feel something weird sneaking into your backpack.");
-        testPlugin.onChatMessage(simulatedMessage);
+        ChatMessage petMessage = new ChatMessage();
+        petMessage.setType(ChatMessageType.GAMEMESSAGE);
+        petMessage.setMessage("You feel something weird sneaking into your backpack.");
+        testPlugin.onChatMessage(petMessage);
+
+        ChatMessage untradeableMessage = new ChatMessage();
+        untradeableMessage.setType(ChatMessageType.GAMEMESSAGE);
+        untradeableMessage.setMessage("Untradeable drop: Abyssal orphan");
+        testPlugin.onChatMessage(untradeableMessage);
+
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
