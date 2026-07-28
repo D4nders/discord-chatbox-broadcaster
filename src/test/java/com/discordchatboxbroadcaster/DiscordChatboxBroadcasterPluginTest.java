@@ -3,8 +3,7 @@ package com.discordchatboxbroadcaster;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.IconID;
-import net.runelite.api.IndexedSprite;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.WorldType;
@@ -124,10 +123,42 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testValuableDropEventSimulation() {
+        // Set initial tick
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
         testPlugin.onChatMessage(simulatedMessage);
+
+        // Advance the tick count by 2 and simulate a game tick to trigger the deferral evaluation
+        when(gameClientMock.getTickCount()).thenReturn(102);
+        testPlugin.onGameTick(new GameTick());
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testValuableDropIgnoredWhenCollectionLogTriggers() {
+        // Set initial tick
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedCollectionLogMessage = new ChatMessage();
+        simulatedCollectionLogMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedCollectionLogMessage.setMessage("New item added to your collection log: Abyssal whip");
+
+        ChatMessage simulatedValuableDropMessage = new ChatMessage();
+        simulatedValuableDropMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedValuableDropMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
+
+        testPlugin.onChatMessage(simulatedCollectionLogMessage);
+        testPlugin.onChatMessage(simulatedValuableDropMessage);
+
+        // Advance the tick count by 2 and simulate a game tick to trigger the deferral evaluation
+        when(gameClientMock.getTickCount()).thenReturn(102);
+        testPlugin.onGameTick(new GameTick());
+
+        // We still only expect 1 call (from the collection log). The valuable drop should be successfully suppressed.
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
@@ -226,22 +257,6 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(completionEvent.getVarbitId()).thenReturn(VarbitID.ATJUN_EASY_DONE);
         when(completionEvent.getValue()).thenReturn(2);
         testPlugin.onVarbitChanged(completionEvent);
-
-        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
-    }
-
-    @Test
-    public void testValuableDropIgnoredWhenCollectionLogTriggers() {
-        ChatMessage simulatedCollectionLogMessage = new ChatMessage();
-        simulatedCollectionLogMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedCollectionLogMessage.setMessage("New item added to your collection log: Abyssal whip");
-
-        ChatMessage simulatedValuableDropMessage = new ChatMessage();
-        simulatedValuableDropMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedValuableDropMessage.setMessage("Valuable drop: 1 x Abyssal whip (1,500,000 coins)");
-
-        testPlugin.onChatMessage(simulatedCollectionLogMessage);
-        testPlugin.onChatMessage(simulatedValuableDropMessage);
 
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }

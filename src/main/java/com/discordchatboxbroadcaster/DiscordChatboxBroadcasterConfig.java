@@ -27,7 +27,12 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 	@ConfigItem(keyName = "notifyCollectionLog", name = "Notify Collection Log", description = "", position = 3)
 	default boolean notifyCollectionLog() { return true; }
 
-	@ConfigItem(keyName = "notifyValuableDrop", name = "Notify Valuable Drop", description = "", position = 4)
+	@ConfigItem(
+			keyName = "notifyValuableDrop",
+			name = "Notify Valuable Drop",
+			description = "Requires 'Loot drop notifications' minimum value to be configured in OSRS settings to broadcast valuable drops.",
+			position = 4
+	)
 	default boolean notifyValuableDrop() { return true; }
 
 	@ConfigItem(keyName = "notifyQuest", name = "Notify Quest Completion", description = "", position = 5)

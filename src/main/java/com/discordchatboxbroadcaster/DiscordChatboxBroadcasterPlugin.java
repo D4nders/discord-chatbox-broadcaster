@@ -70,7 +70,6 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
-	private StartupConfigurationValidator startupConfigurationValidator;
 
 	private BufferedImage cachedPlayerIcon;
 	private int cachedAccountType = -1;
@@ -83,7 +82,6 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Override
 	protected void startUp() {
 		SharedEventState sharedEventState = new SharedEventState();
-		startupConfigurationValidator = new StartupConfigurationValidator(gameClient, clientThread, configManager);
 
 		activeNotifiers = Collections.singletonList(
 				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient, scheduledExecutorService)
@@ -116,7 +114,6 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		}
 		activeNotifiers = null;
 		activeEventProcessors = null;
-		startupConfigurationValidator = null;
 		cachedPlayerIcon = null;
 		cachedAccountType = -1;
 	}
@@ -280,10 +277,6 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		if (incomingGameStateEvent.getGameState() == GameState.LOGIN_SCREEN || incomingGameStateEvent.getGameState() == GameState.HOPPING) {
 			cachedPlayerIcon = null;
 			cachedAccountType = -1;
-		}
-
-		if (incomingGameStateEvent.getGameState() == GameState.LOGGED_IN) {
-			startupConfigurationValidator.evaluateFirstTimePetWarning();
 		}
 
 		if (activeEventProcessors == null) {

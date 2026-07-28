@@ -35,11 +35,15 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
             return;
         }
 
-        Matcher patternMatcher = VALUABLE_DROP_DETECTION_PATTERN.matcher(sanitizedMessageContent);
+        Matcher patternMatcher = VALUAGE_DROP_DETECTION_PATTERN_FIX(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1));
         }
+    }
+
+    private Matcher VALUAGE_DROP_DETECTION_PATTERN_FIX(String content) {
+        return VALUABLE_DROP_DETECTION_PATTERN.matcher(content);
     }
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String dropDetails) {

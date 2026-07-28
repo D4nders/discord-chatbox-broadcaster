@@ -31,6 +31,10 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
 
     @Override
     protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
+        if (currentTick != -1 && sharedEventState.isWithinPetDropWindow(currentTick)) {
+            return;
+        }
+
         Matcher patternMatcher = COLLECTION_LOG_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
