@@ -34,6 +34,11 @@ public class PetEventProcessor extends GameEventProcessor {
     }
 
     @Override
+    public void evaluateGameTick(int currentTick) {
+        evaluatePendingPetEventTimeout(currentTick);
+    }
+
+    @Override
     protected void processSanitizedMessage(String sanitizedMessageContent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
         evaluatePendingPetEventTimeout(currentTick);
 

@@ -27,7 +27,9 @@ import net.runelite.api.clan.ClanID;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -60,8 +62,15 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Inject
 	ScheduledExecutorService scheduledExecutorService;
 
+	@Inject
+	ConfigManager configManager;
+
+	@Inject
+	ClientThread clientThread;
+
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
+	private StartupConfigurationValidator startupConfigurationValidator;
 
 	private BufferedImage cachedPlayerIcon;
 	private int cachedAccountType = -1;
@@ -74,6 +83,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Override
 	protected void startUp() {
 		SharedEventState sharedEventState = new SharedEventState();
+		startupConfigurationValidator = new StartupConfigurationValidator(gameClient, clientThread, configManager);
 
 		activeNotifiers = Collections.singletonList(
 				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient, scheduledExecutorService)
@@ -106,6 +116,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		}
 		activeNotifiers = null;
 		activeEventProcessors = null;
+		startupConfigurationValidator = null;
 		cachedPlayerIcon = null;
 		cachedAccountType = -1;
 	}
@@ -271,12 +282,29 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 			cachedAccountType = -1;
 		}
 
+		if (incomingGameStateEvent.getGameState() == GameState.LOGGED_IN) {
+			startupConfigurationValidator.evaluateFirstTimePetWarning();
+		}
+
 		if (activeEventProcessors == null) {
 			return;
 		}
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
 			targetedProcessor.evaluateGameStateChanged(incomingGameStateEvent.getGameState());
+		}
+	}
+
+	@Subscribe
+	public void onGameTick(GameTick incomingGameTickEvent) {
+		if (activeEventProcessors == null) {
+			return;
+		}
+
+		int currentClientTick = gameClient.getTickCount();
+
+		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
+			targetedProcessor.evaluateGameTick(currentClientTick);
 		}
 	}
 }

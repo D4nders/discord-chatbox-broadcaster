@@ -16,7 +16,12 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 	)
 	default String webhookUrl() { return ""; }
 
-	@ConfigItem(keyName = "notifyPet", name = "Notify Pet (Funny Feeling)", description = "", position = 2)
+	@ConfigItem(
+			keyName = "notifyPet",
+			name = "Notify Pet (Funny Feeling)",
+			description = "Requires 'Untradeable loot notifications' enabled in OSRS settings to broadcast pet names.",
+			position = 2
+	)
 	default boolean notifyPet() { return true; }
 
 	@ConfigItem(keyName = "notifyCollectionLog", name = "Notify Collection Log", description = "", position = 3)

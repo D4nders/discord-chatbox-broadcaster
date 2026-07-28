@@ -84,4 +84,7 @@ public abstract class GameEventProcessor {
             currentNotifier.dispatchNotification(generatedSegments);
         }
     }
+
+    public void evaluateGameTick(int currentTick) {
+    }
 }
