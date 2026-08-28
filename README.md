@@ -2,6 +2,17 @@
 
 A RuneLite plugin that automatically broadcasts significant Old School RuneScape achievements and events to a Discord Webhook. Unlike standard text webhooks, this plugin generates a high-quality, authentic-looking OSRS chatbox image for every broadcast!
 
+## Examples from Discord
+
+<img width="271" height="30" alt="image" src="https://github.com/user-attachments/assets/9cbf31c8-49bb-4538-80c9-061fdc80d552" />
+<br>
+<img width="380" height="30" alt="image" src="https://github.com/user-attachments/assets/f87422e9-d327-443a-8be7-adde9bb1ceb9" />
+<br>
+<img width="514" height="30" alt="image" src="https://github.com/user-attachments/assets/cdf105fc-4432-41c2-b9f2-b6cb9e48a546" />
+<br>
+<img width="382" height="30" alt="image" src="https://github.com/user-attachments/assets/1f1eb78f-1dbf-487d-87a2-0fa05920289b" />
+<br>
+
 ## Features
 
 The plugin currently supports broadcasting the following events:
