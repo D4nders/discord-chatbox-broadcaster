@@ -50,15 +50,13 @@ public abstract class GameEventProcessor {
             return;
         }
 
-        String sanitizedMessageContent = incomingChatMessage.getMessage().replaceAll("<[^>]+>", "");
+        String sanitizedMessageContent = incomingChatMessage.getMessage().replaceAll("<[^>]+>", "").replaceAll("@[a-zA-Z0-9_]+@", "");
         processSanitizedMessage(sanitizedMessageContent, activePlayerName, activeClanName, playerIcon, currentTick);
     }
 
     public void evaluateActorDeath(ActorDeath incomingDeathEvent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
-    public void evaluateVarbitChanged(int varbitId, int newValue, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
-    }
 
     public void evaluateGameStateChanged(GameState newGameState) {
     }

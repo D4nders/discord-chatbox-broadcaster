@@ -28,7 +28,6 @@ import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -98,7 +97,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 				new QuestEventProcessor(activeNotifiers, pluginConfiguration),
 				new NewRecordEventProcessor(activeNotifiers, pluginConfiguration),
 				new LevelUpEventProcessor(activeNotifiers, pluginConfiguration),
-				new KillEventProcessor(activeNotifiers, pluginConfiguration, gameClient),
+				new KillEventProcessor(activeNotifiers, pluginConfiguration),
 				new DeathEventProcessor(activeNotifiers, pluginConfiguration),
 				new CombatAchievementEventProcessor(activeNotifiers, pluginConfiguration),
 				new AchievementDiaryEventProcessor(activeNotifiers, pluginConfiguration)
@@ -230,7 +229,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 		Player localPlayerEntity = gameClient.getLocalPlayer();
 
-		if (localPlayerEntity == null || incomingDeathEvent.getActor() != localPlayerEntity) {
+		if (localPlayerEntity == null) {
 			return;
 		}
 
@@ -247,30 +246,6 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		}
 	}
 
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged incomingVarbitEvent) {
-		if (shouldSkipEvent()) {
-			return;
-		}
-
-		Player localPlayerEntity = gameClient.getLocalPlayer();
-
-		if (localPlayerEntity == null) {
-			return;
-		}
-
-		String activePlayerName = localPlayerEntity.getName();
-
-		ClanChannel activeClanChannel = gameClient.getClanChannel(ClanID.CLAN);
-		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
-
-		int currentClientTick = gameClient.getTickCount();
-		BufferedImage activePlayerIcon = retrievePlayerIcon();
-
-		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
-			targetedProcessor.evaluateVarbitChanged(incomingVarbitEvent.getVarbitId(), incomingVarbitEvent.getValue(), activePlayerName, activeClanName, activePlayerIcon, currentClientTick);
-		}
-	}
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged incomingGameStateEvent) {

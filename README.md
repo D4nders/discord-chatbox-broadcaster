@@ -19,9 +19,9 @@ The plugin currently supports broadcasting the following events:
 
 * 🐾 **Pets** (Funny feelings & backpack sneaks)
 * 📖 **Collection Log** (New item additions)
-* 💰 **Valuable Drops** (High-value and untradeable loot)
+* 💰 **Valuable Drops** (High-value loot drops)
 * 📜 **Quests** (Quest completions)
-* ⏱️ **Personal Bests** (New boss/activity records)
+* ⏱️ **Personal Bests** (New boss/activity records, including boss/activity name)
 * 🎉 **Level Ups** (Skill advancements)
 * ⚔️ **Player Kills** (PvP victories)
 * 💀 **Deaths** (When your character dies)
@@ -29,7 +29,8 @@ The plugin currently supports broadcasting the following events:
 * 🗺️ **Achievement Diaries** (Area tier completions)
 
 ### Smart Features
-* **Intelligent Deduplication:** Prevents spam by silently ignoring "Valuable drop" messages if they trigger on the exact same tick as a "Collection Log" message for the same item.
+* **Intelligent Deduplication:** Prevents spam by silently suppressing duplicate notifications on the same tick — e.g. a "Valuable drop" is ignored when it coincides with a "Collection Log" message for the same item, and pet drops suppress their corresponding collection log entry.
+* **Pet Name Extraction:** Identifies the specific pet name by correlating the "funny feeling" chatbox message with the same-tick "Untradeable drop" message. Duplicate pets show the generic message.
 * **Rate-Limit Protection:** Employs an asynchronous background queue to respect Discord's strict webhook rate limits (5 requests per 2 seconds). This ensures no broadcasts are lost during mass clue-scroll openings or back-to-back achievements.
 * **Streamer Safe:** The Webhook URL configuration field is marked as a secret, masking the URL with asterisks to prevent accidental leaks on stream.
 
@@ -42,6 +43,15 @@ The plugin currently supports broadcasting the following events:
 5. Paste your copied URL into the **Discord Webhook URL** field.
 6. Toggle the specific events you wish to broadcast!
 
-## Credit
+## Changelog
 
-* Achievement Diary varbit mapping logic inspired by [m0bilebtw's C Engineer Completed plugin](https://github.com/m0bilebtw/c-engineer-completed).
+### v1.1
+
+* **Pets:** Decoupled from Valuable Drops. Pet name is now extracted by correlating the "funny feeling" message with the same-tick "Untradeable drop" message. Duplicate pets show the generic message.
+* **Valuable Drops:** Now only triggers on "Valuable drop:" messages — no longer fires on untradeable drops.
+* **Personal Bests:** Now displays the boss/activity name alongside the PB time.
+* **Achievement Diaries:** Refactored from Varbit tracking (which spammed all completed diaries on login) to parsing the standard chatbox completion message.
+* **Combat Tasks & Quests:** Fixed formatting where raw color tags were appearing in Discord messages.
+* **Player Kills:** Fixed a bug where PvM kills were misidentified as PvP kills. Now uses player death tracking.
+* **Config:** All notifications now default to disabled (opt-in) per RuneLite guidelines.
+* Various code-quality improvements.

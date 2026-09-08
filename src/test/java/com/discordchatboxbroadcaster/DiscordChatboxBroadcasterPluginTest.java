@@ -4,14 +4,11 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.NPC;
 import net.runelite.api.Player;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.gameval.VarbitID;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -21,7 +18,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -59,7 +55,6 @@ public class DiscordChatboxBroadcasterPluginTest {
         localPlayerMock = mock(Player.class);
         when(localPlayerMock.getName()).thenReturn("TestPlayer");
         when(gameClientMock.getLocalPlayer()).thenReturn(localPlayerMock);
-        when(gameClientMock.getNpcs()).thenReturn(Collections.emptyList());
         when(gameClientMock.getVarbitValue(net.runelite.api.Varbits.ACCOUNT_TYPE)).thenReturn(0);
         when(gameClientMock.getWorldType()).thenReturn(EnumSet.noneOf(WorldType.class));
 
@@ -173,10 +168,18 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testNewRecordEventSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage kcMessage = new ChatMessage();
+        kcMessage.setType(ChatMessageType.GAMEMESSAGE);
+        kcMessage.setMessage("Your Zulrah kill count is: 42.");
+        testPlugin.onChatMessage(kcMessage);
+
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("Fight Cave duration: 33:23 (new personal best).");
+        simulatedMessage.setMessage("Fight duration: 1:15.40 (new personal best)");
         testPlugin.onChatMessage(simulatedMessage);
+
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
@@ -200,10 +203,18 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testKillEventSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        Player deadPlayerMock = mock(Player.class);
+        when(deadPlayerMock.getName()).thenReturn("Zezima");
+        ActorDeath simulatedDeath = new ActorDeath(deadPlayerMock);
+        testPlugin.onActorDeath(simulatedDeath);
+
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
         simulatedMessage.setMessage("You have defeated Zezima.");
         testPlugin.onChatMessage(simulatedMessage);
+        
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
@@ -218,45 +229,17 @@ public class DiscordChatboxBroadcasterPluginTest {
     public void testCombatAchievementEventSimulation() {
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
-        simulatedMessage.setMessage("Congratulations, you've completed an Easy combat task: Defence? What Defence?");
+        simulatedMessage.setMessage("Congratulations, you've completed an easy combat task: Defence? What Defence?");
         testPlugin.onChatMessage(simulatedMessage);
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 
     @Test
     public void testAchievementDiaryEventSimulation() {
-        GameStateChanged simulatedLoginState = mock(GameStateChanged.class);
-        when(simulatedLoginState.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
-        testPlugin.onGameStateChanged(simulatedLoginState);
-
-        VarbitChanged initialLoadEvent = mock(VarbitChanged.class);
-        when(initialLoadEvent.getVarbitId()).thenReturn(VarbitID.LUMBRIDGE_DIARY_EASY_COMPLETE);
-        when(initialLoadEvent.getValue()).thenReturn(0);
-        testPlugin.onVarbitChanged(initialLoadEvent);
-
-        VarbitChanged completionEvent = mock(VarbitChanged.class);
-        when(completionEvent.getVarbitId()).thenReturn(VarbitID.LUMBRIDGE_DIARY_EASY_COMPLETE);
-        when(completionEvent.getValue()).thenReturn(1);
-        testPlugin.onVarbitChanged(completionEvent);
-
-        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
-    }
-
-    @Test
-    public void testKaramjaDiaryVarbitSimulation() {
-        GameStateChanged simulatedLoginState = mock(GameStateChanged.class);
-        when(simulatedLoginState.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
-        testPlugin.onGameStateChanged(simulatedLoginState);
-
-        VarbitChanged initialLoadEvent = mock(VarbitChanged.class);
-        when(initialLoadEvent.getVarbitId()).thenReturn(VarbitID.ATJUN_EASY_DONE);
-        when(initialLoadEvent.getValue()).thenReturn(1);
-        testPlugin.onVarbitChanged(initialLoadEvent);
-
-        VarbitChanged completionEvent = mock(VarbitChanged.class);
-        when(completionEvent.getVarbitId()).thenReturn(VarbitID.ATJUN_EASY_DONE);
-        when(completionEvent.getValue()).thenReturn(2);
-        testPlugin.onVarbitChanged(completionEvent);
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations! You have completed all of the easy tasks in the Lumbridge & Draynor area.");
+        testPlugin.onChatMessage(simulatedMessage);
 
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
@@ -281,9 +264,9 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Test
     public void testNpcKillIgnored() {
-        NPC krukNpcMock = mock(NPC.class);
-        when(krukNpcMock.getName()).thenReturn("Kruk");
-        when(gameClientMock.getNpcs()).thenReturn(Collections.singletonList(krukNpcMock));
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        // Note: No preceding player ActorDeath event for "Kruk" is fired
 
         ChatMessage simulatedMessage = new ChatMessage();
         simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);

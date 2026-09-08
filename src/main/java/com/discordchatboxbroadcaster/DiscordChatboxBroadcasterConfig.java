@@ -22,10 +22,10 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 			description = "Requires 'Untradeable loot notifications' enabled in OSRS settings to broadcast pet names.",
 			position = 2
 	)
-	default boolean notifyPet() { return true; }
+	default boolean notifyPet() { return false; }
 
 	@ConfigItem(keyName = "notifyCollectionLog", name = "Notify Collection Log", description = "", position = 3)
-	default boolean notifyCollectionLog() { return true; }
+	default boolean notifyCollectionLog() { return false; }
 
 	@ConfigItem(
 			keyName = "notifyValuableDrop",
@@ -33,28 +33,28 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 			description = "Requires 'Loot drop notifications' minimum value to be configured in OSRS settings to broadcast valuable drops.",
 			position = 4
 	)
-	default boolean notifyValuableDrop() { return true; }
+	default boolean notifyValuableDrop() { return false; }
 
 	@ConfigItem(keyName = "notifyQuest", name = "Notify Quest Completion", description = "", position = 5)
-	default boolean notifyQuest() { return true; }
+	default boolean notifyQuest() { return false; }
 
 	@ConfigItem(keyName = "notifyNewRecord", name = "Notify New Record (PB)", description = "", position = 6)
-	default boolean notifyNewRecord() { return true; }
+	default boolean notifyNewRecord() { return false; }
 
 	@ConfigItem(keyName = "notifyLevelUp", name = "Notify Level Up", description = "", position = 7)
-	default boolean notifyLevelUp() { return true; }
+	default boolean notifyLevelUp() { return false; }
 
 	@ConfigItem(keyName = "notifyKill", name = "Notify Player Kill", description = "", position = 8)
-	default boolean notifyKill() { return true; }
+	default boolean notifyKill() { return false; }
 
 	@ConfigItem(keyName = "notifyDeath", name = "Notify Death", description = "", position = 9)
-	default boolean notifyDeath() { return true; }
+	default boolean notifyDeath() { return false; }
 
 	@ConfigItem(keyName = "notifyCombatAchievement", name = "Notify Combat Achievement", description = "", position = 10)
-	default boolean notifyCombatAchievement() { return true; }
+	default boolean notifyCombatAchievement() { return false; }
 
 	@ConfigItem(keyName = "notifyAchievementDiary", name = "Notify Achievement Diary", description = "", position = 11)
-	default boolean notifyAchievementDiary() { return true; }
+	default boolean notifyAchievementDiary() { return false; }
 
 	@ConfigItem(
 			keyName = "disableInTemporaryGameModes",

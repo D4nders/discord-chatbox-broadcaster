@@ -33,6 +33,10 @@ public class DeathEventProcessor extends GameEventProcessor {
             return;
         }
 
+        if (incomingDeathEvent.getActor() == null || incomingDeathEvent.getActor().getName() == null || !incomingDeathEvent.getActor().getName().equals(activePlayerName)) {
+            return;
+        }
+
         executeNotificationSequence(activePlayerName, activeClanName, playerIcon);
     }
 
