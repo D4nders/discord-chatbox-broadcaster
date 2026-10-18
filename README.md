@@ -1,5 +1,6 @@
 # Discord Chatbox Broadcaster
 
+[![Active Installs](https://img.shields.io/endpoint?url=https://api.runelite.net/pluginhub/shields/installs/plugin/discord-chatbox-broadcaster&style=for-the-badge)](https://runelite.net/plugin-hub/show/discord-chatbox-broadcaster)
 [![Report a Bug](https://img.shields.io/badge/%F0%9F%90%9B_Report_a_Bug-d73a4a?style=for-the-badge)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=bug_report.yaml)
 [![New Broadcast Event](https://img.shields.io/badge/%F0%9F%93%A2_New_Broadcast_Event-0075ca?style=for-the-badge)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=new_broadcast.yaml)
 [![Feature Request](https://img.shields.io/badge/%F0%9F%92%A1_Feature_Request-a2eeef?style=for-the-badge&logoColor=black)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=feature_request.yaml)
