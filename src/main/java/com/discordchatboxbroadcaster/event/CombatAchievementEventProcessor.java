@@ -6,6 +6,7 @@ import com.discordchatboxbroadcaster.render.ChatSegment;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,6 +14,7 @@ import java.util.regex.Pattern;
 public class CombatAchievementEventProcessor extends GameEventProcessor {
 
     private static final Pattern COMBAT_ACHIEVEMENT_DETECTION_PATTERN = Pattern.compile("(?:CA_ID:\\d+\\|)?Congratulations, you've completed an? (\\w+) combat task: (.*)");
+    private static final Pattern TIER_COMPLETION_PATTERN = Pattern.compile("You've completed enough Combat Achievement tasks to unlock the (\\w+) Tier rewards!.*", Pattern.CASE_INSENSITIVE);
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 
@@ -36,6 +38,13 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
                 taskName = taskName.substring(0, taskName.length() - 1);
             }
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1).toLowerCase(), taskName);
+            return;
+        }
+
+        Matcher tierMatcher = TIER_COMPLETION_PATTERN.matcher(sanitizedMessageContent);
+        if (tierMatcher.find()) {
+            String tier = tierMatcher.group(1);
+            executeTierNotificationSequence(activePlayerName, activeClanName, playerIcon, tier);
         }
     }
 
@@ -47,5 +56,14 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
         notificationSegments.add(new ChatSegment(taskName + ".", HIGHLIGHT_COLOR));
 
         dispatchNotificationSegments(notificationSegments);
+    }
+
+    private void executeTierNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String tier) {
+        List<ChatSegment> segments = new ArrayList<>(buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon));
+        segments.add(new ChatSegment("has completed the ", Color.BLACK));
+        segments.add(new ChatSegment(tier + " Tier", HIGHLIGHT_COLOR));
+        segments.add(new ChatSegment(" of Combat Achievements!", Color.BLACK));
+
+        dispatchNotificationSegments(segments);
     }
 }

@@ -63,4 +63,15 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 			position = 12
 	)
 	default boolean disableInTemporaryGameModes() { return false; }
+
+	@ConfigItem(
+			keyName = "notifyXpMilestone",
+			name = "Notify XP Milestones (Every 1M past 99)",
+			description = "Send a notification for every whole 1M XP reached in a skill after level 99",
+			position = 13
+	)
+	default boolean notifyXpMilestone()
+	{
+		return false;
+	}
 }

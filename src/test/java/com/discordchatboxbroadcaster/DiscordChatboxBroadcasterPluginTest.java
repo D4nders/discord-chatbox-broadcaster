@@ -3,12 +3,18 @@ package com.discordchatboxbroadcaster;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
-import net.runelite.api.events.GameTick;
 import net.runelite.api.Player;
+import net.runelite.api.Skill;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.StatChanged;
+import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -42,6 +48,12 @@ public class DiscordChatboxBroadcasterPluginTest {
     @Mock
     private Call networkCallMock;
 
+    @Mock
+    private ChatMessageManager chatMessageManagerMock;
+
+    @Mock
+    private ClientThread clientThreadMock;
+
     private DiscordChatboxBroadcasterPlugin testPlugin;
     private AutoCloseable mockitoSession;
     private Player localPlayerMock;
@@ -68,6 +80,7 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(pluginConfigurationMock.notifyDeath()).thenReturn(true);
         when(pluginConfigurationMock.notifyCombatAchievement()).thenReturn(true);
         when(pluginConfigurationMock.notifyAchievementDiary()).thenReturn(true);
+        when(pluginConfigurationMock.notifyXpMilestone()).thenReturn(true);
         when(pluginConfigurationMock.disableInTemporaryGameModes()).thenReturn(false);
 
         when(pluginConfigurationMock.webhookUrl()).thenReturn("https://discord.com/api/webhooks/test");
@@ -79,6 +92,8 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.pluginConfiguration = pluginConfigurationMock;
         testPlugin.sharedNetworkClient = networkClientMock;
         testPlugin.scheduledExecutorService = localExecutorService;
+        testPlugin.chatMessageManager = chatMessageManagerMock;
+        testPlugin.clientThread = clientThreadMock;
 
         testPlugin.startUp();
     }
@@ -287,5 +302,88 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.onChatMessage(simulatedMessage);
 
         verify(networkClientMock, timeout(2000).times(0)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testCombatAchievementTierCompletionSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("You've completed enough Combat Achievement tasks to unlock the Hard Tier rewards! You can now claim your rewards from Ghommal.");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testToaCompletionTimeInlineRecordSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Tombs of Amascut: Expert Mode total completion time: 20:31.00 (new personal best)");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testToaChallengeCompletionTimeDeferredRecordSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage challengeMessage = new ChatMessage();
+        challengeMessage.setType(ChatMessageType.GAMEMESSAGE);
+        challengeMessage.setMessage("Challenge completion time: 18:10 (new personal best)");
+        testPlugin.onChatMessage(challengeMessage);
+
+        ChatMessage kcMessage = new ChatMessage();
+        kcMessage.setType(ChatMessageType.GAMEMESSAGE);
+        kcMessage.setMessage("Your completed Tombs of Amascut: Expert Mode count is: 42.");
+        testPlugin.onChatMessage(kcMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testAchievementDiaryMesboxSimulation() {
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.MESBOX);
+        simulatedMessage.setMessage("Congratulations! You have completed all of the hard<br>achievements in the Varrock set.");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testWarningOnLoginWhenSettingsDisabled() {
+        when(gameClientMock.getGameState()).thenReturn(GameState.LOGGED_IN);
+        when(gameClientMock.getVarbitValue(VarbitID.OPTION_COLLECTION_NEW_ITEM)).thenReturn(0);
+        when(gameClientMock.getVarbitValue(VarbitID.OPTION_LOOTNOTIFICATION_ON)).thenReturn(0);
+
+        GameStateChanged loginScreenEvent = new GameStateChanged();
+        loginScreenEvent.setGameState(GameState.LOGIN_SCREEN);
+        testPlugin.onGameStateChanged(loginScreenEvent);
+
+        GameStateChanged loggedInEvent = new GameStateChanged();
+        loggedInEvent.setGameState(GameState.LOGGED_IN);
+        testPlugin.onGameStateChanged(loggedInEvent);
+
+        testPlugin.onGameTick(new GameTick());
+
+        verify(chatMessageManagerMock, timeout(2000).times(2)).queue(any(QueuedMessage.class));
+    }
+
+    @Test
+    public void testXpMilestoneEventSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        StatChanged baselineStatChanged = new StatChanged(Skill.STRENGTH, 13_999_900, 99, 99);
+        testPlugin.onStatChanged(baselineStatChanged);
+
+        verify(networkClientMock, timeout(2000).times(0)).newCall(any(Request.class));
+
+        StatChanged milestoneStatChanged = new StatChanged(Skill.STRENGTH, 14_000_050, 99, 99);
+        testPlugin.onStatChanged(milestoneStatChanged);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
     }
 }

@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public class AchievementDiaryEventProcessor extends GameEventProcessor {
 
-    private static final Pattern DIARY_PATTERN = Pattern.compile("Congratulations! You have completed all of the (\\w+) tasks in the (.+) area\\.");
+    private static final Pattern DIARY_PATTERN = Pattern.compile("Congratulations! You have completed all of the (\\w+) (?:tasks|achievements) in the (.+?) (?:area|set)\\.?", Pattern.CASE_INSENSITIVE);
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
 
