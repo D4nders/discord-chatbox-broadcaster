@@ -23,14 +23,16 @@ The plugin currently supports broadcasting the following events:
 * 📜 **Quests** (Quest completions)
 * ⏱️ **Personal Bests** (New boss/activity records, including boss/activity name)
 * 🎉 **Level Ups** (Skill advancements)
+* 📈 **XP Milestones** (Every whole 1M XP reached past level 99)
 * ⚔️ **Player Kills** (PvP victories)
 * 💀 **Deaths** (When your character dies)
-* 🛡️ **Combat Achievements** (Task completions)
+* 🛡️ **Combat Achievements** (Individual task & full tier completions)
 * 🗺️ **Achievement Diaries** (Area tier completions)
 
 ### Smart Features
 * **Intelligent Deduplication:** Prevents spam by silently suppressing duplicate notifications on the same tick — e.g. a "Valuable drop" is ignored when it coincides with a "Collection Log" message for the same item, and pet drops suppress their corresponding collection log entry.
 * **Pet Name Extraction:** Identifies the specific pet name by correlating the "funny feeling" chatbox message with the same-tick "Untradeable drop" message. Duplicate pets show the generic message.
+* **In-Game Settings Warnings:** Automatically warns you in the chatbox on login or config toggle if an enabled notification requires an OSRS in-game setting (such as *Collection log - New addition notification* or *Loot drop notifications*) that is currently disabled.
 * **Rate-Limit Protection:** Employs an asynchronous background queue to respect Discord's strict webhook rate limits (5 requests per 2 seconds). This ensures no broadcasts are lost during mass clue-scroll openings or back-to-back achievements.
 * **Streamer Safe:** The Webhook URL configuration field is marked as a secret, masking the URL with asterisks to prevent accidental leaks on stream.
 
@@ -44,6 +46,14 @@ The plugin currently supports broadcasting the following events:
 6. Toggle the specific events you wish to broadcast!
 
 ## Changelog
+
+### v1.2
+
+* **XP Milestones (#6):** Added an opt-in setting to broadcast every whole 1M XP milestone reached past level 99 (`"[Player] has reached [14,000,000] XP in [Skill]!"`).
+* **In-Game Settings Warnings (#7):** Added an in-game chatbox warning on login and config toggle when Collection Log or Valuable Drop notifications are enabled in the plugin while the corresponding OSRS in-game notification settings are disabled.
+* **Achievement Diaries (#8):** Fixed diary completions not broadcasting when displayed in a popup dialog (`MESBOX`/`DIALOG`) or containing `<br>` line breaks.
+* **Personal Bests (#12, #14):** Fixed Tombs of Amascut and raid/boss completion times where inline raid names or same-tick deferred killcount messages caused missing raid names or truncated `"Challenge "` / `"total "` completion labels.
+* **Combat Achievements (#15):** Added broadcasting support for unlocking full Combat Achievement Tier rewards (`"[Player] has completed the [Tier] Tier of Combat Achievements!"`).
 
 ### v1.1
 

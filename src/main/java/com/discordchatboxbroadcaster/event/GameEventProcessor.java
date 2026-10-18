@@ -6,6 +6,7 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.GameState;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.StatChanged;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -38,7 +39,11 @@ public abstract class GameEventProcessor {
         ChatMessageType incomingMessageType = incomingChatMessage.getType();
         String typeName = incomingMessageType.name();
 
-        boolean isGameMessage = incomingMessageType == ChatMessageType.GAMEMESSAGE || incomingMessageType == ChatMessageType.SPAM;
+        boolean isGameMessage = incomingMessageType == ChatMessageType.GAMEMESSAGE
+                || incomingMessageType == ChatMessageType.SPAM
+                || incomingMessageType == ChatMessageType.MESBOX
+                || incomingMessageType == ChatMessageType.DIALOG
+                || incomingMessageType == ChatMessageType.FRIENDSCHATNOTIFICATION;
         boolean isLevelUp = typeName.contains("LEVELUP") || typeName.contains("LEVEL_UP");
 
         if (!isGameMessage && !isLevelUp) {
@@ -50,7 +55,12 @@ public abstract class GameEventProcessor {
             return;
         }
 
-        String sanitizedMessageContent = incomingChatMessage.getMessage().replaceAll("<[^>]+>", "").replaceAll("@[a-zA-Z0-9_]+@", "");
+        String sanitizedMessageContent = incomingChatMessage.getMessage()
+                .replaceAll("(?i)<br\\s*/?>", " ")
+                .replaceAll("<[^>]+>", "")
+                .replaceAll("@[a-zA-Z0-9_]+@", "")
+                .replaceAll("\\s+", " ")
+                .trim();
         processSanitizedMessage(sanitizedMessageContent, activePlayerName, activeClanName, playerIcon, currentTick);
     }
 
@@ -59,6 +69,9 @@ public abstract class GameEventProcessor {
 
 
     public void evaluateGameStateChanged(GameState newGameState) {
+    }
+
+    public void evaluateStatChanged(StatChanged incomingStatEvent, String activePlayerName, String activeClanName, BufferedImage playerIcon, int currentTick) {
     }
 
     protected List<ChatSegment> buildPlayerClanPrefixSegments(String activePlayerName, String activeClanName, BufferedImage playerIcon) {

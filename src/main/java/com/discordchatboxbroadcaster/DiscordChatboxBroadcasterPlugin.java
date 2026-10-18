@@ -11,10 +11,12 @@ import com.discordchatboxbroadcaster.event.NewRecordEventProcessor;
 import com.discordchatboxbroadcaster.event.PetEventProcessor;
 import com.discordchatboxbroadcaster.event.QuestEventProcessor;
 import com.discordchatboxbroadcaster.event.ValuableDropEventProcessor;
+import com.discordchatboxbroadcaster.event.XpMilestoneEventProcessor;
 import com.discordchatboxbroadcaster.notifier.DiscordWebhookNotifier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.IconID;
@@ -28,14 +30,21 @@ import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.StatChanged;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.chat.ChatMessageManager;
+import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.util.ColorUtil;
 import okhttp3.OkHttpClient;
 
 import javax.inject.Inject;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,6 +57,10 @@ import java.util.concurrent.ScheduledExecutorService;
 		name = "Discord Chatbox Broadcaster"
 )
 public class DiscordChatboxBroadcasterPlugin extends Plugin {
+
+	private static final String CONFIG_GROUP = "discordchatboxbroadcaster";
+	static final String COLLECTION_LOG_WARNING = "[Discord Broadcaster] Warning: Collection Log notifications require the in-game setting 'Collection log - New addition notification' to be enabled (Chat or Both).";
+	static final String VALUABLE_DROP_WARNING = "[Discord Broadcaster] Warning: Valuable Drop notifications require the in-game setting 'Loot drop notifications' to be enabled.";
 
 	@Inject
 	Client gameClient;
@@ -67,11 +80,17 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Inject
 	ClientThread clientThread;
 
+	@Inject
+	ChatMessageManager chatMessageManager;
+
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
 
 	private BufferedImage cachedPlayerIcon;
 	private int cachedAccountType = -1;
+
+	private boolean pendingLoginSettingsCheck = false;
+	private GameState lastGameState = null;
 
 	@Provides
 	DiscordChatboxBroadcasterConfig provideConfig(ConfigManager configManager) {
@@ -100,8 +119,13 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 				new KillEventProcessor(activeNotifiers, pluginConfiguration),
 				new DeathEventProcessor(activeNotifiers, pluginConfiguration),
 				new CombatAchievementEventProcessor(activeNotifiers, pluginConfiguration),
-				new AchievementDiaryEventProcessor(activeNotifiers, pluginConfiguration)
+				new AchievementDiaryEventProcessor(activeNotifiers, pluginConfiguration),
+				new XpMilestoneEventProcessor(activeNotifiers, pluginConfiguration)
 		);
+
+		if (gameClient.getGameState() == GameState.LOGGED_IN) {
+			pendingLoginSettingsCheck = true;
+		}
 	}
 
 	@Override
@@ -115,6 +139,8 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		activeEventProcessors = null;
 		cachedPlayerIcon = null;
 		cachedAccountType = -1;
+		pendingLoginSettingsCheck = false;
+		lastGameState = null;
 	}
 
 	private boolean shouldSkipEvent() {
@@ -249,7 +275,15 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged incomingGameStateEvent) {
-		if (incomingGameStateEvent.getGameState() == GameState.LOGIN_SCREEN || incomingGameStateEvent.getGameState() == GameState.HOPPING) {
+		GameState newState = incomingGameStateEvent.getGameState();
+		if (newState == GameState.LOGGED_IN && lastGameState != GameState.HOPPING && lastGameState != GameState.LOGGED_IN) {
+			pendingLoginSettingsCheck = true;
+		}
+		if (newState != GameState.LOADING) {
+			lastGameState = newState;
+		}
+
+		if (newState == GameState.LOGIN_SCREEN || newState == GameState.HOPPING) {
 			cachedPlayerIcon = null;
 			cachedAccountType = -1;
 		}
@@ -259,12 +293,17 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		}
 
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
-			targetedProcessor.evaluateGameStateChanged(incomingGameStateEvent.getGameState());
+			targetedProcessor.evaluateGameStateChanged(newState);
 		}
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick incomingGameTickEvent) {
+		if (pendingLoginSettingsCheck && gameClient.getGameState() == GameState.LOGGED_IN) {
+			pendingLoginSettingsCheck = false;
+			checkAndWarnGameSettings(pluginConfiguration.notifyCollectionLog(), pluginConfiguration.notifyValuableDrop());
+		}
+
 		if (activeEventProcessors == null) {
 			return;
 		}
@@ -274,5 +313,63 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
 			targetedProcessor.evaluateGameTick(currentClientTick);
 		}
+	}
+
+	@Subscribe
+	public void onStatChanged(StatChanged incomingStatEvent) {
+		if (shouldSkipEvent() || activeEventProcessors == null) {
+			return;
+		}
+
+		Player localPlayerEntity = gameClient.getLocalPlayer();
+		if (localPlayerEntity == null) {
+			return;
+		}
+
+		String activePlayerName = localPlayerEntity.getName();
+		ClanChannel activeClanChannel = gameClient.getClanChannel(ClanID.CLAN);
+		String activeClanName = (activeClanChannel != null) ? activeClanChannel.getName() : "";
+		int currentClientTick = gameClient.getTickCount();
+		BufferedImage activePlayerIcon = retrievePlayerIcon();
+
+		for (GameEventProcessor targetedProcessor : activeEventProcessors) {
+			targetedProcessor.evaluateStatChanged(incomingStatEvent, activePlayerName, activeClanName, activePlayerIcon, currentClientTick);
+		}
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event) {
+		if (!CONFIG_GROUP.equals(event.getGroup()) || !"true".equals(event.getNewValue())) {
+			return;
+		}
+		boolean checkCollectionLog = "notifyCollectionLog".equals(event.getKey());
+		boolean checkValuableDrop = "notifyValuableDrop".equals(event.getKey());
+		if (checkCollectionLog || checkValuableDrop) {
+			clientThread.invokeLater(() -> {
+				if (gameClient.getGameState() == GameState.LOGGED_IN) {
+					checkAndWarnGameSettings(checkCollectionLog, checkValuableDrop);
+				}
+			});
+		}
+	}
+
+	private void checkAndWarnGameSettings(boolean checkCollectionLog, boolean checkValuableDrop) {
+		if (checkCollectionLog && (gameClient.getVarbitValue(VarbitID.OPTION_COLLECTION_NEW_ITEM) & 1) == 0) {
+			sendChatWarning(COLLECTION_LOG_WARNING);
+		}
+		if (checkValuableDrop && gameClient.getVarbitValue(VarbitID.OPTION_LOOTNOTIFICATION_ON) == 0) {
+			sendChatWarning(VALUABLE_DROP_WARNING);
+		}
+	}
+
+	private void sendChatWarning(String message) {
+		if (chatMessageManager == null) {
+			return;
+		}
+		String formatted = ColorUtil.wrapWithColorTag(message, Color.RED);
+		chatMessageManager.queue(QueuedMessage.builder()
+				.type(ChatMessageType.CONSOLE)
+				.runeLiteFormattedMessage(formatted)
+				.build());
 	}
 }
