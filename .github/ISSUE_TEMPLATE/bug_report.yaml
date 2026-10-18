@@ -1,72 +1,42 @@
-name: Bug Report
-description: Create a report to help improve the Discord Chatbox Broadcaster
+name: 🐛 Bug Report
+description: Report a broadcast that didn't trigger, parsed wrong, or behaved unexpectedly
 title: "[BUG] "
 labels: ["bug"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## 🐛 Bug Report
-        Thanks for taking the time to fill out this bug report! Please ensure you have checked the existing issues before submitting.
-        
-  - type: checkboxes
-    id: prerequisites
-    attributes:
-      label: Prerequisites
-      description: Please verify the following before submitting.
-      options:
-        - label: I have searched the open issues and found no duplicates.
-          required: true
-        - label: I am using the latest version of the Discord Chatbox Broadcaster plugin.
-          required: true
-
-  - type: input
-    id: runelite-version
-    attributes:
-      label: RuneLite Version
-      description: What version of RuneLite are you using?
-      placeholder: "e.g., 1.10.x"
-    validations:
-      required: true
-
   - type: dropdown
-    id: operating-system
+    id: feature
     attributes:
-      label: Operating System
-      description: What operating system are you playing on?
+      label: Affected Feature
+      description: Which broadcast or feature is affected?
       options:
-        - Windows
-        - macOS
-        - Linux
+        - Personal Bests (PB / Fight Duration)
+        - Combat Achievements
+        - Achievement Diaries
+        - Collection Log
+        - Valuable Drops
+        - Pets
+        - Level Ups / XP Milestones
+        - Quests
+        - Player Kills / Deaths
+        - Discord Webhook / Image Rendering
+        - Other
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: description
     attributes:
-      label: Describe the bug
-      description: A clear and concise description of what the bug is.
-      placeholder: "The plugin isn't firing a webhook when I receive a collection log drop..."
+      label: What happened?
+      description: Briefly describe what went wrong or what you expected to happen.
+      placeholder: "e.g., ToA completion time was posted without the raid name..."
     validations:
       required: true
 
   - type: textarea
-    id: reproduction
+    id: chat-message
     attributes:
-      label: Reproduction steps
-      description: How do you trigger this bug? Please walk us through it step by step.
-      value: |
-        1. Go to '...'
-        2. Click on '...'
-        3. See error
-    validations:
-      required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Client Logs
-      description: Please paste any relevant errors from your `client.log` located in `.runelite/logs/client.log`.
-      render: bash
+      label: In-Game Chat Message / Screenshot (Optional)
+      description: Paste the exact OSRS chatbox message (or drag & drop a screenshot of the chatbox / Discord output) if you have it.
+      placeholder: "e.g., Tombs of Amascut total completion time: 20:31 (new personal best)"
     validations:
       required: false

@@ -1,5 +1,10 @@
 # Discord Chatbox Broadcaster
 
+[![Report a Bug](https://img.shields.io/badge/%F0%9F%90%9B_Report_a_Bug-d73a4a?style=for-the-badge)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=bug_report.yaml)
+[![New Broadcast Event](https://img.shields.io/badge/%F0%9F%93%A2_New_Broadcast_Event-0075ca?style=for-the-badge)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=new_broadcast.yaml)
+[![Feature Request](https://img.shields.io/badge/%F0%9F%92%A1_Feature_Request-a2eeef?style=for-the-badge&logoColor=black)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=feature_request.yaml)
+[![Blank Issue](https://img.shields.io/badge/%F0%9F%93%9D_Quick_Note_%2F_Blank_Issue-6e7781?style=for-the-badge)](https://github.com/D4nders/discord-chatbox-broadcaster/issues/new?template=BLANK_ISSUE)
+
 A RuneLite plugin that automatically broadcasts significant Old School RuneScape achievements and events to a Discord Webhook. Unlike standard text webhooks, this plugin generates a high-quality, authentic-looking OSRS chatbox image for every broadcast!
 
 ## Examples from Discord

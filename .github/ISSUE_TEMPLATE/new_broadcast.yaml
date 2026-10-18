@@ -1,0 +1,31 @@
+name: 📢 New Broadcast Event
+description: Add a new in-game achievement or event to broadcast to Discord
+title: "[BROADCAST] "
+labels: ["enhancement"]
+body:
+  - type: input
+    id: event-name
+    attributes:
+      label: Event / Achievement Name
+      description: What in-game event should be broadcast?
+      placeholder: "e.g., 1M XP Milestones past 99, Clue Scroll Caskets, Combat Achievement Tiers..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: trigger
+    attributes:
+      label: In-Game Trigger / Chat Message (Optional)
+      description: Paste the exact in-game chat message (or describe how it triggers in OSRS, e.g. popup dialog / XP drop).
+      placeholder: "e.g., You've completed enough Combat Achievement tasks to unlock the Hard Tier rewards!"
+    validations:
+      required: false
+
+  - type: textarea
+    id: discord-format
+    attributes:
+      label: Desired Discord Broadcast Format (Optional)
+      description: How should the generated chatbox message read in Discord? Use [brackets] to indicate red highlighted text.
+      placeholder: "e.g., Player has completed the [Hard Tier] of Combat Achievements!"
+    validations:
+      required: false
