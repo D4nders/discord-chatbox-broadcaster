@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class ValuableDropEventProcessor extends GameEventProcessor {
 
     private static final Pattern VALUABLE_DROP_DETECTION_PATTERN = Pattern.compile("Valuable drop: (?:\\d+ x )?(.*)");
+    private static final Pattern VALUE_PATTERN = Pattern.compile("\\((\\d[\\d,]*) coins\\)", Pattern.CASE_INSENSITIVE);
 
     private final DiscordChatboxBroadcasterConfig pluginConfiguration;
     private final SharedEventState sharedEventState;
@@ -38,6 +39,19 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = VALUABLE_DROP_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
+            int minValue = pluginConfiguration.valuableDropMinValue();
+            if (minValue > 0) {
+                Matcher valueMatcher = VALUE_PATTERN.matcher(sanitizedMessageContent);
+                if (valueMatcher.find()) {
+                    try {
+                        long value = Long.parseLong(valueMatcher.group(1).replace(",", ""));
+                        if (value < minValue) {
+                            return;
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1));
         }
     }

@@ -1,6 +1,7 @@
 package com.discordchatboxbroadcaster.event;
 
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
+import com.discordchatboxbroadcaster.config.CombatAchievementTier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
 import com.discordchatboxbroadcaster.render.ChatSegment.Role;
@@ -33,16 +34,31 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = COMBAT_ACHIEVEMENT_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
+            String capturedTier = patternMatcher.group(1);
+            CombatAchievementTier taskTier = CombatAchievementTier.fromName(capturedTier);
+            if (taskTier != null) {
+                CombatAchievementTier minTier = pluginConfiguration.combatAchievementMinTier();
+                if (minTier == null) {
+                    minTier = CombatAchievementTier.EASY;
+                }
+                if (taskTier.ordinal() < minTier.ordinal()) {
+                    return;
+                }
+            }
+
             String taskName = patternMatcher.group(2);
             if (taskName.endsWith(".")) {
                 taskName = taskName.substring(0, taskName.length() - 1);
             }
-            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1).toLowerCase(), taskName);
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, capturedTier.toLowerCase(), taskName);
             return;
         }
 
         Matcher tierMatcher = TIER_COMPLETION_PATTERN.matcher(sanitizedMessageContent);
         if (tierMatcher.find()) {
+            if (!pluginConfiguration.notifyCombatAchievementTierCompletion()) {
+                return;
+            }
             String tier = tierMatcher.group(1);
             executeTierNotificationSequence(activePlayerName, activeClanName, playerIcon, tier);
         }
