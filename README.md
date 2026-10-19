@@ -25,17 +25,19 @@ The plugin currently supports broadcasting the following events:
 
 * 🐾 **Pets** (Funny feelings & backpack sneaks)
 * 📖 **Collection Log** (New item additions)
-* 💰 **Valuable Drops** (High-value loot drops)
+* 💰 **Valuable Drops** (High-value loot drops, with configurable minimum GP threshold)
 * 📜 **Quests** (Quest completions)
 * ⏱️ **Personal Bests** (New boss/activity records, including boss/activity name)
-* 🎉 **Level Ups** (Skill advancements)
-* 📈 **XP Milestones** (Every whole 1M XP reached past level 99)
+* 🎉 **Level Ups** (Skill advancements, with minimum level & interval filters)
+* 📈 **XP Milestones** (Configurable 1M / 5M / 10M / 25M / 50M XP intervals past level 99)
 * ⚔️ **Player Kills** (PvP victories)
 * 💀 **Deaths** (When your character dies)
-* 🛡️ **Combat Achievements** (Individual task & full tier completions)
+* 🛡️ **Combat Achievements** (Individual task & full tier completions, with minimum task tier filter)
 * 🗺️ **Achievement Diaries** (Area tier completions)
 
-### Smart Features
+### Smart Features & Customizability
+* **Customizable Chatbox Appearance:** Choose between **Classic** parchment, **Transparent**, or **Dark** (resizable-style with drop shadow) backgrounds, customize highlight and clan-tag colors, toggle clan name or Ironman icon prefixes, and scale images (`1x`, `2x`, `3x`) with crisp nearest-neighbor upscaling.
+* **Webhook & Screenshot Options:** Optionally attach a full game screenshot alongside the chatbox broadcast and override the Discord webhook's display username and avatar URL.
 * **Intelligent Deduplication:** Prevents spam by silently suppressing duplicate notifications on the same tick — e.g. a "Valuable drop" is ignored when it coincides with a "Collection Log" message for the same item, and pet drops suppress their corresponding collection log entry.
 * **Pet Name Extraction:** Identifies the specific pet name by correlating the "funny feeling" chatbox message with the same-tick "Untradeable drop" message. Duplicate pets show the generic message.
 * **In-Game Settings Warnings:** Automatically warns you in the chatbox on login or config toggle if an enabled notification requires an OSRS in-game setting (such as *Collection log - New addition notification* or *Loot drop notifications*) that is currently disabled.
@@ -49,9 +51,20 @@ The plugin currently supports broadcasting the following events:
 3. Click **New Webhook**, customize the name/avatar, and click **Copy Webhook URL**.
 4. Open the RuneLite configuration panel and search for **Discord Chatbox Broadcaster**.
 5. Paste your copied URL into the **Discord Webhook URL** field.
-6. Toggle the specific events you wish to broadcast!
+6. Expand the event sections you wish to broadcast, toggle them on, and adjust any filters or appearance settings!
 
 ## Changelog
+
+### v1.3
+
+* **Revamped Configuration Menu:** Organized settings into collapsible sections (*General*, *Appearance*, and dedicated sections per event category) while preserving all existing configuration keys.
+* **Appearance Customization:** Added options to toggle the clan name prefix and account-type (Ironman) icon, customize highlight and clan colors, select between *Classic*, *Transparent*, and *Dark* backgrounds, and scale generated images (`1x`, `2x`, `3x`).
+* **Per-Event Filters & Thresholds:**
+  * **Valuable Drops:** Added a minimum coin value threshold parsed directly from the drop notification.
+  * **Level Ups:** Added minimum level and level interval filters (level 99 is always broadcast when >= minimum level).
+  * **XP Milestones:** Added configurable milestone intervals (`1M`, `5M`, `10M`, `25M`, `50M`).
+  * **Combat Achievements:** Added a minimum task tier filter (`Easy` through `Grandmaster`) and a separate toggle for full-tier completions.
+* **Discord & Screenshot Options:** Added optional full game screenshot attachments and custom webhook username/avatar URL overrides.
 
 ### v1.2
 
