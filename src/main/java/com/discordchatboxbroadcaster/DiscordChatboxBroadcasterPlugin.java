@@ -14,6 +14,7 @@ import com.discordchatboxbroadcaster.event.ValuableDropEventProcessor;
 import com.discordchatboxbroadcaster.event.XpMilestoneEventProcessor;
 import com.discordchatboxbroadcaster.notifier.DiscordWebhookNotifier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
+import com.discordchatboxbroadcaster.ui.DiscordChatboxBroadcasterPanel;
 import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
@@ -41,11 +42,15 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.DrawManager;
+import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ColorUtil;
+import net.runelite.client.util.ImageUtil;
 import okhttp3.OkHttpClient;
 
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.Arrays;
@@ -60,7 +65,7 @@ import java.util.concurrent.ScheduledExecutorService;
 )
 public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
-	private static final String CONFIG_GROUP = "discordchatboxbroadcaster";
+	static final String CONFIG_GROUP = "discordchatboxbroadcaster";
 	static final String COLLECTION_LOG_WARNING = "[Discord Broadcaster] Warning: Collection Log notifications require the in-game setting 'Collection log - New addition notification' to be enabled (Chat or Both).";
 	static final String VALUABLE_DROP_WARNING = "[Discord Broadcaster] Warning: Valuable Drop notifications require the in-game setting 'Loot drop notifications' to be enabled.";
 
@@ -91,6 +96,9 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Inject
 	DrawManager drawManager;
 
+	@Inject
+	ClientToolbar clientToolbar;
+
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
 
@@ -99,6 +107,17 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	private boolean pendingLoginSettingsCheck = false;
 	private GameState lastGameState = null;
+
+	private DiscordChatboxBroadcasterPanel panel;
+	private NavigationButton navigationButton;
+
+	public DiscordChatboxBroadcasterPanel getPanel() {
+		return panel;
+	}
+
+	public NavigationButton getNavigationButton() {
+		return navigationButton;
+	}
 
 	@Provides
 	DiscordChatboxBroadcasterConfig provideConfig(ConfigManager configManager) {
@@ -131,13 +150,38 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 				new XpMilestoneEventProcessor(activeNotifiers, pluginConfiguration)
 		);
 
+		panel = new DiscordChatboxBroadcasterPanel(pluginConfiguration, configManager, gson);
+
+		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel_icon.png");
+		if (icon == null) {
+			icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+		}
+
+		navigationButton = NavigationButton.builder()
+				.tooltip("Discord Chatbox Broadcaster")
+				.icon(icon)
+				.priority(5)
+				.panel(panel)
+				.build();
+
+		if (clientToolbar != null && pluginConfiguration.showSidebarPanel()) {
+			clientToolbar.addNavigation(navigationButton);
+		}
+
 		if (gameClient.getGameState() == GameState.LOGGED_IN) {
 			pendingLoginSettingsCheck = true;
+			updatePanelPlayerContext();
 		}
 	}
 
 	@Override
 	protected void shutDown() {
+		if (clientToolbar != null && navigationButton != null) {
+			clientToolbar.removeNavigation(navigationButton);
+		}
+		navigationButton = null;
+		panel = null;
+
 		if (activeNotifiers != null) {
 			for (Notifier currentNotifier : activeNotifiers) {
 				currentNotifier.terminate();
@@ -286,6 +330,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		GameState newState = incomingGameStateEvent.getGameState();
 		if (newState == GameState.LOGGED_IN && lastGameState != GameState.HOPPING && lastGameState != GameState.LOGGED_IN) {
 			pendingLoginSettingsCheck = true;
+			updatePanelPlayerContext();
 		}
 		if (newState != GameState.LOADING) {
 			lastGameState = newState;
@@ -294,6 +339,13 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		if (newState == GameState.LOGIN_SCREEN || newState == GameState.HOPPING) {
 			cachedPlayerIcon = null;
 			cachedAccountType = -1;
+			if (panel != null) {
+				SwingUtilities.invokeLater(() -> {
+					if (panel != null) {
+						panel.updatePlayerContext(null, null, null);
+					}
+				});
+			}
 		}
 
 		if (activeEventProcessors == null) {
@@ -310,6 +362,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		if (pendingLoginSettingsCheck && gameClient.getGameState() == GameState.LOGGED_IN) {
 			pendingLoginSettingsCheck = false;
 			checkAndWarnGameSettings(pluginConfiguration.notifyCollectionLog(), pluginConfiguration.notifyValuableDrop());
+			updatePanelPlayerContext();
 		}
 
 		if (activeEventProcessors == null) {
@@ -347,17 +400,41 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
-		if (!CONFIG_GROUP.equals(event.getGroup()) || !"true".equals(event.getNewValue())) {
+		if (!CONFIG_GROUP.equals(event.getGroup())) {
+			return;
+		}
+
+		if ("showSidebarPanel".equals(event.getKey())) {
+			SwingUtilities.invokeLater(() -> {
+				if (clientToolbar == null || navigationButton == null) {
+					return;
+				}
+				clientToolbar.removeNavigation(navigationButton);
+				if (pluginConfiguration.showSidebarPanel()) {
+					clientToolbar.addNavigation(navigationButton);
+				}
+			});
+		}
+
+		SwingUtilities.invokeLater(() -> {
+			if (panel != null) {
+				panel.updatePreview();
+			}
+		});
+
+		if (!"true".equals(event.getNewValue())) {
 			return;
 		}
 		boolean checkCollectionLog = "notifyCollectionLog".equals(event.getKey());
 		boolean checkValuableDrop = "notifyValuableDrop".equals(event.getKey());
 		if (checkCollectionLog || checkValuableDrop) {
-			clientThread.invokeLater(() -> {
-				if (gameClient.getGameState() == GameState.LOGGED_IN) {
-					checkAndWarnGameSettings(checkCollectionLog, checkValuableDrop);
-				}
-			});
+			if (clientThread != null) {
+				clientThread.invokeLater(() -> {
+					if (gameClient != null && gameClient.getGameState() == GameState.LOGGED_IN) {
+						checkAndWarnGameSettings(checkCollectionLog, checkValuableDrop);
+					}
+				});
+			}
 		}
 	}
 
@@ -379,5 +456,36 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 				.type(ChatMessageType.CONSOLE)
 				.runeLiteFormattedMessage(formatted)
 				.build());
+	}
+
+	private void updatePanelPlayerContext() {
+		if (panel == null || gameClient == null) {
+			return;
+		}
+
+		Runnable queryPlayerInfo = () -> {
+			if (gameClient.getGameState() != GameState.LOGGED_IN) {
+				return;
+			}
+			Player localPlayer = gameClient.getLocalPlayer();
+			String playerName = (localPlayer != null) ? localPlayer.getName() : null;
+
+			ClanChannel clanChannel = gameClient.getClanChannel(ClanID.CLAN);
+			String clanName = (clanChannel != null) ? clanChannel.getName() : null;
+
+			BufferedImage playerIcon = retrievePlayerIcon();
+
+			SwingUtilities.invokeLater(() -> {
+				if (panel != null) {
+					panel.updatePlayerContext(clanName, playerName, playerIcon);
+				}
+			});
+		};
+
+		if (clientThread != null) {
+			clientThread.invokeLater(queryPlayerInfo);
+		} else {
+			queryPlayerInfo.run();
+		}
 	}
 }

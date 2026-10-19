@@ -158,6 +158,15 @@ public interface DiscordChatboxBroadcasterConfig extends Config {
 	)
 	default boolean disableInTemporaryGameModes() { return false; }
 
+	@ConfigItem(
+			keyName = "showSidebarPanel",
+			name = "Show Sidebar Panel",
+			description = "Show the Discord Chatbox Broadcaster panel in the RuneLite sidebar for live appearance preview and exporting/importing share codes.",
+			position = 6,
+			section = generalSection
+	)
+	default boolean showSidebarPanel() { return true; }
+
 	// --- Appearance Section ---
 
 	@ConfigItem(

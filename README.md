@@ -37,6 +37,7 @@ The plugin currently supports broadcasting the following events:
 
 ### Smart Features & Customizability
 * **Customizable Chatbox Appearance:** Choose between **Classic** parchment, **Transparent**, or **Dark** (resizable-style with drop shadow) backgrounds, customize highlight and clan-tag colors, toggle clan name or Ironman icon prefixes, and scale images (`1x`, `2x`, `3x`) with crisp nearest-neighbor upscaling.
+* **Sidebar Panel (Live Preview & Config Sharing):** Includes a dedicated RuneLite sidebar panel displaying a **Live Appearance Preview** of your chatbox image, an **Export Share Code to Clipboard** button, and an **Import Share Code** input field + button with inline status feedback so friends and clanmates can easily match styles and event thresholds. For security, your Webhook URL, username, avatar URL, and screenshot settings are **never** exported or imported.
 * **Webhook & Screenshot Options:** Optionally attach a full game screenshot alongside the chatbox broadcast and override the Discord webhook's display username and avatar URL.
 * **Intelligent Deduplication:** Prevents spam by silently suppressing duplicate notifications on the same tick — e.g. a "Valuable drop" is ignored when it coincides with a "Collection Log" message for the same item, and pet drops suppress their corresponding collection log entry.
 * **Pet Name Extraction:** Identifies the specific pet name by correlating the "funny feeling" chatbox message with the same-tick "Untradeable drop" message. Duplicate pets show the generic message.
@@ -58,6 +59,7 @@ The plugin currently supports broadcasting the following events:
 ### v1.3
 
 * **Revamped Configuration Menu:** Organized settings into collapsible sections (*General*, *Appearance*, and dedicated sections per event category) while preserving all existing configuration keys.
+* **Sidebar Panel (Live Preview & Share Codes):** Added a dedicated RuneLite sidebar panel with a live chatbox appearance preview, an **Export Share Code to Clipboard** button, and an **Import Share Code** input field + button (with a checkbox for whether to also import event toggles & filters). Webhook URLs and credentials are strictly excluded from both export and import.
 * **Appearance Customization:** Added options to toggle the clan name prefix and account-type (Ironman) icon, customize highlight and clan colors, select between *Classic*, *Transparent*, and *Dark* backgrounds, and scale generated images (`1x`, `2x`, `3x`).
 * **Per-Event Filters & Thresholds:**
   * **Valuable Drops:** Added a minimum coin value threshold parsed directly from the drop notification.

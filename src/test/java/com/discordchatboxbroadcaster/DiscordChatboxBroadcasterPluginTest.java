@@ -8,6 +8,7 @@ import net.runelite.api.Skill;
 import net.runelite.api.WorldType;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.CommandExecuted;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.StatChanged;
@@ -15,11 +16,16 @@ import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.events.ConfigChanged;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import com.google.gson.Gson;
+import com.discordchatboxbroadcaster.config.ConfigShareCodeManager;
+import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.DrawManager;
+import net.runelite.client.ui.NavigationButton;
 import okio.Buffer;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +47,8 @@ import com.discordchatboxbroadcaster.config.ImageScale;
 import com.discordchatboxbroadcaster.config.XpMilestoneInterval;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -70,6 +78,12 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Mock
     private DrawManager drawManagerMock;
+
+    @Mock
+    private ConfigManager configManagerMock;
+
+    @Mock
+    private ClientToolbar clientToolbarMock;
 
     private DiscordChatboxBroadcasterPlugin testPlugin;
     private AutoCloseable mockitoSession;
@@ -122,6 +136,13 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(pluginConfigurationMock.combatAchievementMinTier()).thenReturn(CombatAchievementTier.EASY);
         when(pluginConfigurationMock.notifyCombatAchievementTierCompletion()).thenReturn(true);
 
+        when(pluginConfigurationMock.showSidebarPanel()).thenReturn(true);
+
+        org.mockito.Mockito.doAnswer(invocation -> {
+            ((Runnable) invocation.getArgument(0)).run();
+            return null;
+        }).when(clientThreadMock).invokeLater(any(Runnable.class));
+
         when(networkClientMock.newCall(any(Request.class))).thenReturn(networkCallMock);
 
         testPlugin = new DiscordChatboxBroadcasterPlugin();
@@ -132,6 +153,8 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.chatMessageManager = chatMessageManagerMock;
         testPlugin.clientThread = clientThreadMock;
         testPlugin.drawManager = drawManagerMock;
+        testPlugin.configManager = configManagerMock;
+        testPlugin.clientToolbar = clientToolbarMock;
         testPlugin.gson = new Gson();
 
         testPlugin.startUp();
@@ -523,5 +546,43 @@ public class DiscordChatboxBroadcasterPluginTest {
         assertTrue(bodyContent.contains("notification.png"));
         assertTrue(bodyContent.contains("files[1]"));
         assertTrue(bodyContent.contains("screenshot.png"));
+    }
+
+    @Test
+    public void testSidebarNavigationAddedOnStartupAndRemovedOnShutdown() {
+        verify(clientToolbarMock).addNavigation(any(NavigationButton.class));
+        assertNotNull(testPlugin.getPanel());
+        assertNotNull(testPlugin.getNavigationButton());
+
+        testPlugin.shutDown();
+        verify(clientToolbarMock).removeNavigation(any(NavigationButton.class));
+        assertNull(testPlugin.getPanel());
+        assertNull(testPlugin.getNavigationButton());
+    }
+
+    @Test
+    public void testSidebarNavigationToggledOnConfigChanged() {
+        NavigationButton navButton = testPlugin.getNavigationButton();
+        assertNotNull(navButton);
+
+        // Toggle to false
+        when(pluginConfigurationMock.showSidebarPanel()).thenReturn(false);
+        ConfigChanged disableEvent = new ConfigChanged();
+        disableEvent.setGroup(DiscordChatboxBroadcasterPlugin.CONFIG_GROUP);
+        disableEvent.setKey("showSidebarPanel");
+        disableEvent.setNewValue("false");
+        testPlugin.onConfigChanged(disableEvent);
+
+        verify(clientToolbarMock, timeout(1000).atLeastOnce()).removeNavigation(navButton);
+
+        // Toggle back to true
+        when(pluginConfigurationMock.showSidebarPanel()).thenReturn(true);
+        ConfigChanged enableEvent = new ConfigChanged();
+        enableEvent.setGroup(DiscordChatboxBroadcasterPlugin.CONFIG_GROUP);
+        enableEvent.setKey("showSidebarPanel");
+        enableEvent.setNewValue("true");
+        testPlugin.onConfigChanged(enableEvent);
+
+        verify(clientToolbarMock, timeout(1000).atLeast(2)).addNavigation(navButton);
     }
 }

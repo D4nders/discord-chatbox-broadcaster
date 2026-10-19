@@ -27,7 +27,11 @@ public class ChatboxImageGenerator {
         this.config = config;
     }
 
-    public byte[] generateChatboxImage(List<ChatSegment> activeChatSegments) {
+    public BufferedImage generateChatboxBufferedImage(List<ChatSegment> activeChatSegments) {
+        return generateChatboxBufferedImage(activeChatSegments, true);
+    }
+
+    public BufferedImage generateChatboxBufferedImage(List<ChatSegment> activeChatSegments, boolean applyScale) {
         try {
             boolean showClan = config == null || config.showClanName();
             boolean showIcon = config == null || config.showAccountIcon();
@@ -122,7 +126,7 @@ public class ChatboxImageGenerator {
 
             BufferedImage outputImage = activeImageCanvas;
             int scaleFactor = imageScale.getFactor();
-            if (scaleFactor > 1) {
+            if (applyScale && scaleFactor > 1) {
                 int scaledWidth = dynamicCanvasWidth * scaleFactor;
                 int scaledHeight = imageCanvasHeight * scaleFactor;
                 BufferedImage scaledImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
@@ -133,6 +137,18 @@ public class ChatboxImageGenerator {
                 outputImage = scaledImage;
             }
 
+            return outputImage;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public byte[] generateChatboxImage(List<ChatSegment> activeChatSegments) {
+        try {
+            BufferedImage outputImage = generateChatboxBufferedImage(activeChatSegments);
+            if (outputImage == null) {
+                return new byte[0];
+            }
             return convertImageToByteArray(outputImage);
         } catch (Exception e) {
             return new byte[0];

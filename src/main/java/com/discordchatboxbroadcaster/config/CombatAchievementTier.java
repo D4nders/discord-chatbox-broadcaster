@@ -1,10 +1,5 @@
 package com.discordchatboxbroadcaster.config;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum CombatAchievementTier {
     EASY("Easy"),
     MEDIUM("Medium"),
@@ -14,6 +9,14 @@ public enum CombatAchievementTier {
     GRANDMASTER("Grandmaster");
 
     private final String name;
+
+    CombatAchievementTier(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     @Override
     public String toString() {

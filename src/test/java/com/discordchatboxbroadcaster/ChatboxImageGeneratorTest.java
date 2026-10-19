@@ -77,6 +77,24 @@ public class ChatboxImageGeneratorTest {
     }
 
     @Test
+    public void testGenerateChatboxBufferedImageUnscaled() {
+        List<ChatSegment> segments = Arrays.asList(
+                new ChatSegment("PlayerName: ", Role.TEXT),
+                new ChatSegment("Hello Gielinor!", Role.HIGHLIGHT)
+        );
+
+        when(config.imageScale()).thenReturn(ImageScale.X3);
+        BufferedImage scaled = generator.generateChatboxBufferedImage(segments, true);
+        BufferedImage unscaled = generator.generateChatboxBufferedImage(segments, false);
+
+        assertNotNull(scaled);
+        assertNotNull(unscaled);
+        assertEquals(30, unscaled.getHeight());
+        assertEquals(90, scaled.getHeight());
+        assertEquals(unscaled.getWidth() * 3, scaled.getWidth());
+    }
+
+    @Test
     public void testTransparentBackgroundCornerPixel() throws IOException {
         when(config.backgroundStyle()).thenReturn(BackgroundStyle.TRANSPARENT);
         List<ChatSegment> segments = Collections.singletonList(new ChatSegment("Test", Role.TEXT));
