@@ -18,21 +18,30 @@ import net.runelite.client.chat.QueuedMessage;
 import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import com.google.gson.Gson;
+import net.runelite.client.ui.DrawManager;
+import okio.Buffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Consumer;
 import com.discordchatboxbroadcaster.config.BackgroundStyle;
 import com.discordchatboxbroadcaster.config.CombatAchievementTier;
 import com.discordchatboxbroadcaster.config.ImageScale;
 import com.discordchatboxbroadcaster.config.XpMilestoneInterval;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
@@ -58,6 +67,9 @@ public class DiscordChatboxBroadcasterPluginTest {
 
     @Mock
     private ClientThread clientThreadMock;
+
+    @Mock
+    private DrawManager drawManagerMock;
 
     private DiscordChatboxBroadcasterPlugin testPlugin;
     private AutoCloseable mockitoSession;
@@ -119,6 +131,8 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.scheduledExecutorService = localExecutorService;
         testPlugin.chatMessageManager = chatMessageManagerMock;
         testPlugin.clientThread = clientThreadMock;
+        testPlugin.drawManager = drawManagerMock;
+        testPlugin.gson = new Gson();
 
         testPlugin.startUp();
     }
@@ -410,5 +424,104 @@ public class DiscordChatboxBroadcasterPluginTest {
         testPlugin.onStatChanged(milestoneStatChanged);
 
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testPayloadJsonAbsentWhenBlank() throws Exception {
+        when(pluginConfigurationMock.webhookUsername()).thenReturn("");
+        when(pluginConfigurationMock.webhookAvatarUrl()).thenReturn("");
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        verify(networkClientMock, timeout(2000).times(1)).newCall(requestCaptor.capture());
+
+        Buffer buffer = new Buffer();
+        requestCaptor.getValue().body().writeTo(buffer);
+        String bodyContent = buffer.readUtf8();
+
+        assertFalse(bodyContent.contains("payload_json"));
+        assertTrue(bodyContent.contains("files[0]"));
+        assertTrue(bodyContent.contains("notification.png"));
+        assertFalse(bodyContent.contains("files[1]"));
+    }
+
+    @Test
+    public void testPayloadJsonPresentWhenUsernameAndAvatarSet() throws Exception {
+        when(pluginConfigurationMock.webhookUsername()).thenReturn("NotificationBot");
+        when(pluginConfigurationMock.webhookAvatarUrl()).thenReturn("https://example.com/avatar.png");
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        verify(networkClientMock, timeout(2000).times(1)).newCall(requestCaptor.capture());
+
+        Buffer buffer = new Buffer();
+        requestCaptor.getValue().body().writeTo(buffer);
+        String bodyContent = buffer.readUtf8();
+
+        assertTrue(bodyContent.contains("payload_json"));
+        assertTrue(bodyContent.contains("NotificationBot"));
+        assertTrue(bodyContent.contains("https://example.com/avatar.png"));
+        assertTrue(bodyContent.contains("files[0]"));
+    }
+
+    @Test
+    public void testPayloadJsonTruncatesUsernameTo80Chars() throws Exception {
+        String longUsername = "A".repeat(100);
+        when(pluginConfigurationMock.webhookUsername()).thenReturn(longUsername);
+        when(pluginConfigurationMock.webhookAvatarUrl()).thenReturn("");
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        verify(networkClientMock, timeout(2000).times(1)).newCall(requestCaptor.capture());
+
+        Buffer buffer = new Buffer();
+        requestCaptor.getValue().body().writeTo(buffer);
+        String bodyContent = buffer.readUtf8();
+
+        assertTrue(bodyContent.contains("payload_json"));
+        assertTrue(bodyContent.contains("A".repeat(80)));
+        assertFalse(bodyContent.contains("A".repeat(81)));
+        assertFalse(bodyContent.contains("avatar_url"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testAttachScreenshotCapturesFrameAndAttachesFiles1() throws Exception {
+        when(pluginConfigurationMock.attachScreenshot()).thenReturn(true);
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Congratulations, you've completed a quest: Cook's Assistant");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        ArgumentCaptor<Consumer<Image>> frameListenerCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(drawManagerMock, timeout(2000).times(1)).requestNextFrameListener(frameListenerCaptor.capture());
+
+        BufferedImage testFrame = new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        frameListenerCaptor.getValue().accept(testFrame);
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        verify(networkClientMock, timeout(2000).times(1)).newCall(requestCaptor.capture());
+
+        Buffer buffer = new Buffer();
+        requestCaptor.getValue().body().writeTo(buffer);
+        String bodyContent = buffer.readUtf8();
+
+        assertTrue(bodyContent.contains("files[0]"));
+        assertTrue(bodyContent.contains("notification.png"));
+        assertTrue(bodyContent.contains("files[1]"));
+        assertTrue(bodyContent.contains("screenshot.png"));
     }
 }

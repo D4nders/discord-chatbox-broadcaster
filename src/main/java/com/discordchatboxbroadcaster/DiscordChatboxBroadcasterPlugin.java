@@ -14,6 +14,7 @@ import com.discordchatboxbroadcaster.event.ValuableDropEventProcessor;
 import com.discordchatboxbroadcaster.event.XpMilestoneEventProcessor;
 import com.discordchatboxbroadcaster.notifier.DiscordWebhookNotifier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
@@ -40,6 +41,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.DrawManager;
 import net.runelite.client.util.ColorUtil;
 import okhttp3.OkHttpClient;
 
@@ -83,6 +85,12 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 	@Inject
 	ChatMessageManager chatMessageManager;
 
+	@Inject
+	Gson gson;
+
+	@Inject
+	DrawManager drawManager;
+
 	private List<GameEventProcessor> activeEventProcessors;
 	private List<Notifier> activeNotifiers;
 
@@ -102,7 +110,7 @@ public class DiscordChatboxBroadcasterPlugin extends Plugin {
 		SharedEventState sharedEventState = new SharedEventState();
 
 		activeNotifiers = Collections.singletonList(
-				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient, scheduledExecutorService)
+				new DiscordWebhookNotifier(pluginConfiguration, sharedNetworkClient, scheduledExecutorService, gson, drawManager)
 		);
 
 		for (Notifier currentNotifier : activeNotifiers) {
