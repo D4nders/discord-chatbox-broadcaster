@@ -4,8 +4,8 @@ import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.SharedEventState;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,8 +44,8 @@ public class ValuableDropEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String dropDetails) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("received a drop: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(dropDetails, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment("received a drop: ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(dropDetails, Role.HIGHLIGHT));
 
         dispatchNotificationSegments(notificationSegments);
     }

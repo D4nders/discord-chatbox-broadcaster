@@ -3,8 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.List;
@@ -73,15 +73,15 @@ public class KillEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String defeatedTarget, String coinsReceived) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("has defeated ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(defeatedTarget, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment("has defeated ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(defeatedTarget, Role.HIGHLIGHT));
 
         if (coinsReceived != null) {
-            notificationSegments.add(new ChatSegment(" and received ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(coinsReceived + " coins", HIGHLIGHT_COLOR));
+            notificationSegments.add(new ChatSegment(" and received ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(coinsReceived + " coins", Role.HIGHLIGHT));
         }
 
-        notificationSegments.add(new ChatSegment("!", Color.BLACK));
+        notificationSegments.add(new ChatSegment("!", Role.TEXT));
 
         dispatchNotificationSegments(notificationSegments);
     }

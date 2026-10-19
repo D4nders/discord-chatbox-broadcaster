@@ -3,8 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,8 +37,8 @@ public class QuestEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String questName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("completed a quest: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(questName, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment("completed a quest: ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(questName, Role.HIGHLIGHT));
 
         dispatchNotificationSegments(notificationSegments);
     }

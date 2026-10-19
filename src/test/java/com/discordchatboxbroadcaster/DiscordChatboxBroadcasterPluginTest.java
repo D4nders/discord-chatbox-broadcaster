@@ -24,9 +24,14 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.awt.Color;
 import java.util.EnumSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import com.discordchatboxbroadcaster.config.BackgroundStyle;
+import com.discordchatboxbroadcaster.config.CombatAchievementTier;
+import com.discordchatboxbroadcaster.config.ImageScale;
+import com.discordchatboxbroadcaster.config.XpMilestoneInterval;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -84,6 +89,26 @@ public class DiscordChatboxBroadcasterPluginTest {
         when(pluginConfigurationMock.disableInTemporaryGameModes()).thenReturn(false);
 
         when(pluginConfigurationMock.webhookUrl()).thenReturn("https://discord.com/api/webhooks/test");
+        when(pluginConfigurationMock.webhookUsername()).thenReturn("");
+        when(pluginConfigurationMock.webhookAvatarUrl()).thenReturn("");
+        when(pluginConfigurationMock.attachScreenshot()).thenReturn(false);
+
+        when(pluginConfigurationMock.showClanName()).thenReturn(true);
+        when(pluginConfigurationMock.showAccountIcon()).thenReturn(true);
+        when(pluginConfigurationMock.backgroundStyle()).thenReturn(BackgroundStyle.CLASSIC);
+        when(pluginConfigurationMock.highlightColor()).thenReturn(new Color(239, 16, 32));
+        when(pluginConfigurationMock.clanNameColor()).thenReturn(Color.BLUE);
+        when(pluginConfigurationMock.imageScale()).thenReturn(ImageScale.X1);
+
+        when(pluginConfigurationMock.valuableDropMinValue()).thenReturn(0);
+
+        when(pluginConfigurationMock.levelUpMinLevel()).thenReturn(1);
+        when(pluginConfigurationMock.levelUpInterval()).thenReturn(1);
+
+        when(pluginConfigurationMock.xpMilestoneInterval()).thenReturn(XpMilestoneInterval.ONE_MILLION);
+
+        when(pluginConfigurationMock.combatAchievementMinTier()).thenReturn(CombatAchievementTier.EASY);
+        when(pluginConfigurationMock.notifyCombatAchievementTierCompletion()).thenReturn(true);
 
         when(networkClientMock.newCall(any(Request.class))).thenReturn(networkCallMock);
 

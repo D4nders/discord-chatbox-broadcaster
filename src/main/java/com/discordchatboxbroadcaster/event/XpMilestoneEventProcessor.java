@@ -3,12 +3,12 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 import net.runelite.api.Experience;
 import net.runelite.api.GameState;
 import net.runelite.api.Skill;
 import net.runelite.api.events.StatChanged;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
 import java.util.List;
@@ -75,11 +75,11 @@ public class XpMilestoneEventProcessor extends GameEventProcessor {
             String skillName = skill.getName();
 
             List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-            notificationSegments.add(new ChatSegment("has reached ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(formattedXp, HIGHLIGHT_COLOR));
-            notificationSegments.add(new ChatSegment(" XP in ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName, HIGHLIGHT_COLOR));
-            notificationSegments.add(new ChatSegment("!", Color.BLACK));
+            notificationSegments.add(new ChatSegment("has reached ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(formattedXp, Role.HIGHLIGHT));
+            notificationSegments.add(new ChatSegment(" XP in ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(skillName, Role.HIGHLIGHT));
+            notificationSegments.add(new ChatSegment("!", Role.TEXT));
 
             dispatchNotificationSegments(notificationSegments);
         }

@@ -55,9 +55,24 @@ public class ChatboxImageGenerator {
             graphicsContext.drawImage(inlineImage, horizontalCoordinate, verticalOffset, null);
             return horizontalCoordinate + inlineImage.getWidth() + 2;
         } else {
-            graphicsContext.setColor(targetSegment.retrieveTextColor());
+            graphicsContext.setColor(mapRoleToColor(targetSegment.retrieveRole()));
             graphicsContext.drawString(targetSegment.retrieveTextContent(), horizontalCoordinate, verticalCoordinate);
             return horizontalCoordinate + graphicsContext.getFontMetrics().stringWidth(targetSegment.retrieveTextContent());
+        }
+    }
+
+    private Color mapRoleToColor(ChatSegment.Role role) {
+        if (role == null) {
+            return Color.BLACK;
+        }
+        switch (role) {
+            case HIGHLIGHT:
+                return new Color(239, 16, 32);
+            case CLAN:
+                return Color.BLUE;
+            case TEXT:
+            default:
+                return Color.BLACK;
         }
     }
 

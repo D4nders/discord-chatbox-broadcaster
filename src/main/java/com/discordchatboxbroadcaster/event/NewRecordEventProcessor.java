@@ -3,9 +3,9 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 import net.runelite.api.GameState;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,13 +156,13 @@ public class NewRecordEventProcessor extends GameEventProcessor {
     private void sendRecordNotification(List<ChatSegment> prefixSegments, String bossName, String recordDetails) {
         List<ChatSegment> segments = new ArrayList<>(prefixSegments);
         if (bossName != null && !bossName.isEmpty()) {
-            segments.add(new ChatSegment("achieved a new ", Color.BLACK));
-            segments.add(new ChatSegment(bossName, HIGHLIGHT_COLOR));
-            segments.add(new ChatSegment(" record: ", Color.BLACK));
+            segments.add(new ChatSegment("achieved a new ", Role.TEXT));
+            segments.add(new ChatSegment(bossName, Role.HIGHLIGHT));
+            segments.add(new ChatSegment(" record: ", Role.TEXT));
         } else {
-            segments.add(new ChatSegment("achieved a new record: ", Color.BLACK));
+            segments.add(new ChatSegment("achieved a new record: ", Role.TEXT));
         }
-        segments.add(new ChatSegment(recordDetails, HIGHLIGHT_COLOR));
+        segments.add(new ChatSegment(recordDetails, Role.HIGHLIGHT));
         dispatchNotificationSegments(segments);
     }
 }

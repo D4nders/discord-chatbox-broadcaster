@@ -2,20 +2,18 @@ package com.discordchatboxbroadcaster.event;
 
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.GameState;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.StatChanged;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class GameEventProcessor {
-
-    protected static final Color HIGHLIGHT_COLOR = new Color(239, 16, 32);
 
     private final List<Notifier> registeredNotifiers;
 
@@ -78,14 +76,14 @@ public abstract class GameEventProcessor {
         List<ChatSegment> prefixSegments = new ArrayList<>();
 
         if (activeClanName != null && !activeClanName.isEmpty()) {
-            prefixSegments.add(new ChatSegment("[" + activeClanName + "] ", Color.BLUE));
+            prefixSegments.add(new ChatSegment("[" + activeClanName + "] ", Role.CLAN));
         }
 
         if (playerIcon != null) {
             prefixSegments.add(new ChatSegment(playerIcon));
         }
 
-        prefixSegments.add(new ChatSegment(activePlayerName + " ", Color.BLACK));
+        prefixSegments.add(new ChatSegment(activePlayerName + " ", Role.TEXT));
 
         return prefixSegments;
     }

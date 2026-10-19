@@ -3,8 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -57,12 +57,12 @@ public class LevelUpEventProcessor extends GameEventProcessor {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
 
         if (skillLevel != null) {
-            notificationSegments.add(new ChatSegment("has reached ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName + " level " + skillLevel, HIGHLIGHT_COLOR));
-            notificationSegments.add(new ChatSegment(".", Color.BLACK));
+            notificationSegments.add(new ChatSegment("has reached ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(skillName + " level " + skillLevel, Role.HIGHLIGHT));
+            notificationSegments.add(new ChatSegment(".", Role.TEXT));
         } else {
-            notificationSegments.add(new ChatSegment("advanced a level: ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName, HIGHLIGHT_COLOR));
+            notificationSegments.add(new ChatSegment("advanced a level: ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(skillName, Role.HIGHLIGHT));
         }
 
         dispatchNotificationSegments(notificationSegments);
