@@ -53,8 +53,15 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.discordchatboxbroadcaster.event.NewRecordEventProcessor;
+import com.discordchatboxbroadcaster.notifier.Notifier;
+import com.discordchatboxbroadcaster.render.ChatSegment;
+import java.util.Collections;
+import java.util.List;
 
 public class DiscordChatboxBroadcasterPluginTest {
 
@@ -392,6 +399,11 @@ public class DiscordChatboxBroadcasterPluginTest {
     public void testToaChallengeCompletionTimeDeferredRecordSimulation() {
         when(gameClientMock.getTickCount()).thenReturn(100);
 
+        ChatMessage wardenMessage = new ChatMessage();
+        wardenMessage.setType(ChatMessageType.GAMEMESSAGE);
+        wardenMessage.setMessage("Challenge complete: The Wardens. Duration: 7:20<br>Tombs of Amascut: challenge completion time: 22:19 (new personal best)");
+        testPlugin.onChatMessage(wardenMessage);
+
         ChatMessage challengeMessage = new ChatMessage();
         challengeMessage.setType(ChatMessageType.GAMEMESSAGE);
         challengeMessage.setMessage("Challenge completion time: 18:10 (new personal best)");
@@ -402,7 +414,112 @@ public class DiscordChatboxBroadcasterPluginTest {
         kcMessage.setMessage("Your completed Tombs of Amascut: Expert Mode count is: 42.");
         testPlugin.onChatMessage(kcMessage);
 
+        when(gameClientMock.getTickCount()).thenReturn(103);
+        testPlugin.onGameTick(new GameTick());
+
+        verify(networkClientMock, timeout(1000).times(0)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testToaTotalCompletionTimeWithoutColonSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Tombs of Amascut total completion time: 28:54 (new personal best)");
+        testPlugin.onChatMessage(simulatedMessage);
+
         verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testToaTotalCompletionTimeWithColonSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Tombs of Amascut: total completion time: 28:54 (new personal best)");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    public void testToaTotalCompletionTimeDeferredKcSimulation() {
+        when(gameClientMock.getTickCount()).thenReturn(100);
+
+        ChatMessage simulatedMessage = new ChatMessage();
+        simulatedMessage.setType(ChatMessageType.GAMEMESSAGE);
+        simulatedMessage.setMessage("Total completion time: 28:54 (new personal best)");
+        testPlugin.onChatMessage(simulatedMessage);
+
+        ChatMessage kcMessage = new ChatMessage();
+        kcMessage.setType(ChatMessageType.GAMEMESSAGE);
+        kcMessage.setMessage("Your completed Tombs of Amascut: Expert Mode count is: 42.");
+        testPlugin.onChatMessage(kcMessage);
+
+        verify(networkClientMock, timeout(2000).times(1)).newCall(any(Request.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testToaTotalCompletionTimeCleanRaidNameVerification() {
+        Notifier mockNotifier = mock(Notifier.class);
+        NewRecordEventProcessor processor = new NewRecordEventProcessor(
+            Collections.singletonList(mockNotifier),
+            pluginConfigurationMock
+        );
+
+        ChatMessage messageWithColon = new ChatMessage();
+        messageWithColon.setType(ChatMessageType.GAMEMESSAGE);
+        messageWithColon.setMessage("Tombs of Amascut: total completion time: 28:54 (new personal best)");
+
+        processor.evaluateIncomingEvent(messageWithColon, "TestPlayer", "TestClan", null, 100);
+
+        ArgumentCaptor<List<ChatSegment>> captor = ArgumentCaptor.forClass(List.class);
+        verify(mockNotifier, times(1)).dispatchNotification(captor.capture());
+
+        List<ChatSegment> segments = captor.getValue();
+        boolean hasCleanBossName = segments.stream()
+            .anyMatch(s -> "Tombs of Amascut".equals(s.retrieveTextContent()));
+        boolean hasTrailingColon = segments.stream()
+            .anyMatch(s -> "Tombs of Amascut:".equals(s.retrieveTextContent()));
+
+        assertTrue(hasCleanBossName);
+        assertFalse(hasTrailingColon);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testToaSeparatePrefixCleanRaidNameVerification() {
+        Notifier mockNotifier = mock(Notifier.class);
+        NewRecordEventProcessor processor = new NewRecordEventProcessor(
+            Collections.singletonList(mockNotifier),
+            pluginConfigurationMock
+        );
+
+        ChatMessage prefixMessage = new ChatMessage();
+        prefixMessage.setType(ChatMessageType.GAMEMESSAGE);
+        prefixMessage.setMessage("Tombs of Amascut: total completion time: 28:54");
+
+        ChatMessage recordMessage = new ChatMessage();
+        recordMessage.setType(ChatMessageType.GAMEMESSAGE);
+        recordMessage.setMessage("Total completion time: 28:54 (new personal best)");
+
+        processor.evaluateIncomingEvent(prefixMessage, "TestPlayer", "TestClan", null, 100);
+        processor.evaluateIncomingEvent(recordMessage, "TestPlayer", "TestClan", null, 100);
+
+        ArgumentCaptor<List<ChatSegment>> captor = ArgumentCaptor.forClass(List.class);
+        verify(mockNotifier, times(1)).dispatchNotification(captor.capture());
+
+        List<ChatSegment> segments = captor.getValue();
+        boolean hasCleanBossName = segments.stream()
+            .anyMatch(s -> "Tombs of Amascut".equals(s.retrieveTextContent()));
+        boolean hasTrailingColon = segments.stream()
+            .anyMatch(s -> "Tombs of Amascut:".equals(s.retrieveTextContent()));
+
+        assertTrue(hasCleanBossName);
+        assertFalse(hasTrailingColon);
     }
 
     @Test

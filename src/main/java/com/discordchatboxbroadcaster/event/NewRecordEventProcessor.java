@@ -15,13 +15,13 @@ import java.util.regex.Pattern;
 public class NewRecordEventProcessor extends GameEventProcessor {
 
     private static final Pattern RECORD_DETECTION_PATTERN = Pattern.compile(
-        "(?i)^(?:(?<prefix>.+?) )??(?<detail>(?:(?:Fight |Lap |Challenge |Corrupted challenge )?duration:|Subdued in|(?:(?:Challenge |Total )?completion time:)) [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
+        "(?i)^(?:(?<prefix>.+?) )??(?<detail>(?:(?:Fight |Lap |Challenge |Corrupted challenge )?duration:|Subdued in|(?<!challenge )(?:Total )?completion time:) [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
     );
     private static final Pattern COX_RECORD_PATTERN = Pattern.compile(
         "(?i)Congratulations - your raid is complete!.*?(?<detail>Duration: [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
     );
     private static final Pattern RAID_COMPLETION_PREFIX_PATTERN = Pattern.compile(
-        "(?i)^(?<prefix>.+?) (?:(?:Challenge |Total )?completion time:) [0-9:]+"
+        "(?i)^(?<prefix>.+?) (?<!challenge )(?:Total )?completion time: [0-9:]+"
     );
     private static final Pattern KILLCOUNT_PATTERN = Pattern.compile(
         "(?i)Your (?:completion count for |subdued |completed )?(.+?) (?:(?:kill|chest|harvest|lap|completion|success|opened|Total Ticket) )?(?:count )?is: ?[0-9,]+"
@@ -107,7 +107,7 @@ public class NewRecordEventProcessor extends GameEventProcessor {
             String recordDetails = recordMatcher.group("detail");
 
             if (inlinePrefix != null && !inlinePrefix.trim().isEmpty()) {
-                cachedBossName = inlinePrefix.trim();
+                cachedBossName = inlinePrefix.trim().replaceAll(":$", "").trim();
                 bossNameTick = currentTick;
             }
 
@@ -137,7 +137,7 @@ public class NewRecordEventProcessor extends GameEventProcessor {
 
         Matcher raidPrefixMatcher = RAID_COMPLETION_PREFIX_PATTERN.matcher(sanitizedMessageContent);
         if (raidPrefixMatcher.find()) {
-            String prefix = raidPrefixMatcher.group("prefix").trim();
+            String prefix = raidPrefixMatcher.group("prefix").trim().replaceAll(":$", "").trim();
             if (!prefix.equalsIgnoreCase("Challenge") && !prefix.equalsIgnoreCase("Total")) {
                 cachedBossName = prefix;
                 bossNameTick = currentTick;
