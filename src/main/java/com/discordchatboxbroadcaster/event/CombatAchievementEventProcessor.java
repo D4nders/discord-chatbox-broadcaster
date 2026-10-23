@@ -1,10 +1,11 @@
 package com.discordchatboxbroadcaster.event;
 
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
+import com.discordchatboxbroadcaster.config.CombatAchievementTier;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +34,31 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
         Matcher patternMatcher = COMBAT_ACHIEVEMENT_DETECTION_PATTERN.matcher(sanitizedMessageContent);
 
         if (patternMatcher.find()) {
+            String capturedTier = patternMatcher.group(1);
+            CombatAchievementTier taskTier = CombatAchievementTier.fromName(capturedTier);
+            if (taskTier != null) {
+                CombatAchievementTier minTier = pluginConfiguration.combatAchievementMinTier();
+                if (minTier == null) {
+                    minTier = CombatAchievementTier.EASY;
+                }
+                if (taskTier.ordinal() < minTier.ordinal()) {
+                    return;
+                }
+            }
+
             String taskName = patternMatcher.group(2);
             if (taskName.endsWith(".")) {
                 taskName = taskName.substring(0, taskName.length() - 1);
             }
-            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, patternMatcher.group(1).toLowerCase(), taskName);
+            executeNotificationSequence(activePlayerName, activeClanName, playerIcon, capturedTier.toLowerCase(), taskName);
             return;
         }
 
         Matcher tierMatcher = TIER_COMPLETION_PATTERN.matcher(sanitizedMessageContent);
         if (tierMatcher.find()) {
+            if (!pluginConfiguration.notifyCombatAchievementTierCompletion()) {
+                return;
+            }
             String tier = tierMatcher.group(1);
             executeTierNotificationSequence(activePlayerName, activeClanName, playerIcon, tier);
         }
@@ -50,19 +66,19 @@ public class CombatAchievementEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String tier, String taskName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("has completed a ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(tier, HIGHLIGHT_COLOR));
-        notificationSegments.add(new ChatSegment(" combat task: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(taskName + ".", HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment("has completed a ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(tier, Role.HIGHLIGHT));
+        notificationSegments.add(new ChatSegment(" combat task: ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(taskName + ".", Role.HIGHLIGHT));
 
         dispatchNotificationSegments(notificationSegments);
     }
 
     private void executeTierNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String tier) {
         List<ChatSegment> segments = new ArrayList<>(buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon));
-        segments.add(new ChatSegment("has completed the ", Color.BLACK));
-        segments.add(new ChatSegment(tier + " Tier", HIGHLIGHT_COLOR));
-        segments.add(new ChatSegment(" of Combat Achievements!", Color.BLACK));
+        segments.add(new ChatSegment("has completed the ", Role.TEXT));
+        segments.add(new ChatSegment(tier + " Tier", Role.HIGHLIGHT));
+        segments.add(new ChatSegment(" of Combat Achievements!", Role.TEXT));
 
         dispatchNotificationSegments(segments);
     }

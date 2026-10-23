@@ -3,9 +3,9 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 import net.runelite.api.GameState;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,13 +15,13 @@ import java.util.regex.Pattern;
 public class NewRecordEventProcessor extends GameEventProcessor {
 
     private static final Pattern RECORD_DETECTION_PATTERN = Pattern.compile(
-        "(?i)^(?:(?<prefix>.+?) )??(?<detail>(?:(?:Fight |Lap |Challenge |Corrupted challenge )?duration:|Subdued in|(?:(?:Challenge |Total )?completion time:)) [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
+        "(?i)^(?:(?<prefix>.+?) )??(?<detail>(?:(?:Fight |Lap |Challenge |Corrupted challenge )?duration:|Subdued in|(?<!challenge )(?:Total )?completion time:) [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
     );
     private static final Pattern COX_RECORD_PATTERN = Pattern.compile(
         "(?i)Congratulations - your raid is complete!.*?(?<detail>Duration: [0-9:]+(?:\\.\\d+)?) \\(new personal best\\)"
     );
     private static final Pattern RAID_COMPLETION_PREFIX_PATTERN = Pattern.compile(
-        "(?i)^(?<prefix>.+?) (?:(?:Challenge |Total )?completion time:) [0-9:]+"
+        "(?i)^(?<prefix>.+?) (?<!challenge )(?:Total )?completion time: [0-9:]+"
     );
     private static final Pattern KILLCOUNT_PATTERN = Pattern.compile(
         "(?i)Your (?:completion count for |subdued |completed )?(.+?) (?:(?:kill|chest|harvest|lap|completion|success|opened|Total Ticket) )?(?:count )?is: ?[0-9,]+"
@@ -107,7 +107,7 @@ public class NewRecordEventProcessor extends GameEventProcessor {
             String recordDetails = recordMatcher.group("detail");
 
             if (inlinePrefix != null && !inlinePrefix.trim().isEmpty()) {
-                cachedBossName = inlinePrefix.trim();
+                cachedBossName = inlinePrefix.trim().replaceAll(":$", "").trim();
                 bossNameTick = currentTick;
             }
 
@@ -137,7 +137,7 @@ public class NewRecordEventProcessor extends GameEventProcessor {
 
         Matcher raidPrefixMatcher = RAID_COMPLETION_PREFIX_PATTERN.matcher(sanitizedMessageContent);
         if (raidPrefixMatcher.find()) {
-            String prefix = raidPrefixMatcher.group("prefix").trim();
+            String prefix = raidPrefixMatcher.group("prefix").trim().replaceAll(":$", "").trim();
             if (!prefix.equalsIgnoreCase("Challenge") && !prefix.equalsIgnoreCase("Total")) {
                 cachedBossName = prefix;
                 bossNameTick = currentTick;
@@ -156,13 +156,13 @@ public class NewRecordEventProcessor extends GameEventProcessor {
     private void sendRecordNotification(List<ChatSegment> prefixSegments, String bossName, String recordDetails) {
         List<ChatSegment> segments = new ArrayList<>(prefixSegments);
         if (bossName != null && !bossName.isEmpty()) {
-            segments.add(new ChatSegment("achieved a new ", Color.BLACK));
-            segments.add(new ChatSegment(bossName, HIGHLIGHT_COLOR));
-            segments.add(new ChatSegment(" record: ", Color.BLACK));
+            segments.add(new ChatSegment("achieved a new ", Role.TEXT));
+            segments.add(new ChatSegment(bossName, Role.HIGHLIGHT));
+            segments.add(new ChatSegment(" record: ", Role.TEXT));
         } else {
-            segments.add(new ChatSegment("achieved a new record: ", Color.BLACK));
+            segments.add(new ChatSegment("achieved a new record: ", Role.TEXT));
         }
-        segments.add(new ChatSegment(recordDetails, HIGHLIGHT_COLOR));
+        segments.add(new ChatSegment(recordDetails, Role.HIGHLIGHT));
         dispatchNotificationSegments(segments);
     }
 }

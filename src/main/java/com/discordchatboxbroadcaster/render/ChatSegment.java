@@ -1,23 +1,28 @@
 package com.discordchatboxbroadcaster.render;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 
 public class ChatSegment {
 
+    public enum Role {
+        TEXT,
+        HIGHLIGHT,
+        CLAN
+    }
+
     private final String textContent;
-    private final Color textColor;
+    private final Role role;
     private final BufferedImage inlineImage;
 
-    public ChatSegment(String textContent, Color textColor) {
+    public ChatSegment(String textContent, Role role) {
         this.textContent = textContent;
-        this.textColor = textColor;
+        this.role = role;
         this.inlineImage = null;
     }
 
     public ChatSegment(BufferedImage inlineImage) {
         this.textContent = "";
-        this.textColor = Color.WHITE;
+        this.role = null;
         this.inlineImage = inlineImage;
     }
 
@@ -25,8 +30,8 @@ public class ChatSegment {
         return textContent;
     }
 
-    public Color retrieveTextColor() {
-        return textColor;
+    public Role retrieveRole() {
+        return role;
     }
 
     public BufferedImage retrieveInlineImage() {

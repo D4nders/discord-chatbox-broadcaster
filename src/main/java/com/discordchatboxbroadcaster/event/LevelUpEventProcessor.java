@@ -3,8 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,6 +33,9 @@ public class LevelUpEventProcessor extends GameEventProcessor {
         Matcher maxLevelMatcher = MAX_LEVEL_PATTERN.matcher(sanitizedMessageContent);
 
         if (maxLevelMatcher.find()) {
+            if (!shouldBroadcastLevel(99)) {
+                return;
+            }
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, maxLevelMatcher.group(1), "99");
             return;
         }
@@ -49,20 +52,41 @@ public class LevelUpEventProcessor extends GameEventProcessor {
                 skillLevel = skillLevelMatcher.group(1);
             }
 
+            Integer parsedLevel = null;
+            if (skillLevel != null) {
+                try {
+                    parsedLevel = Integer.parseInt(skillLevel);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            if (!shouldBroadcastLevel(parsedLevel)) {
+                return;
+            }
+
             executeNotificationSequence(activePlayerName, activeClanName, playerIcon, skillName, skillLevel);
         }
+    }
+
+    private boolean shouldBroadcastLevel(Integer level) {
+        if (level == null) {
+            return true;
+        }
+        int minLevel = Math.max(1, pluginConfiguration.levelUpMinLevel());
+        int interval = Math.max(1, pluginConfiguration.levelUpInterval());
+        return level >= minLevel && (level % interval == 0 || level == 99);
     }
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String skillName, String skillLevel) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
 
         if (skillLevel != null) {
-            notificationSegments.add(new ChatSegment("has reached ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName + " level " + skillLevel, HIGHLIGHT_COLOR));
-            notificationSegments.add(new ChatSegment(".", Color.BLACK));
+            notificationSegments.add(new ChatSegment("has reached ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(skillName + " level " + skillLevel, Role.HIGHLIGHT));
+            notificationSegments.add(new ChatSegment(".", Role.TEXT));
         } else {
-            notificationSegments.add(new ChatSegment("advanced a level: ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(skillName, HIGHLIGHT_COLOR));
+            notificationSegments.add(new ChatSegment("advanced a level: ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(skillName, Role.HIGHLIGHT));
         }
 
         dispatchNotificationSegments(notificationSegments);

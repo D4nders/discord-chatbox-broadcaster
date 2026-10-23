@@ -3,8 +3,8 @@ package com.discordchatboxbroadcaster.event;
 import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,9 +44,9 @@ public class AchievementDiaryEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String tier, String area) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("completed the ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(tier + " " + area, HIGHLIGHT_COLOR));
-        notificationSegments.add(new ChatSegment(" diary.", Color.BLACK));
+        notificationSegments.add(new ChatSegment("completed the ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(tier + " " + area, Role.HIGHLIGHT));
+        notificationSegments.add(new ChatSegment(" diary.", Role.TEXT));
 
         dispatchNotificationSegments(notificationSegments);
     }

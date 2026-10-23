@@ -4,8 +4,8 @@ import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.SharedEventState;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -48,8 +48,8 @@ public class CollectionLogEventProcessor extends GameEventProcessor {
 
     private void executeNotificationSequence(String activePlayerName, String activeClanName, BufferedImage playerIcon, String itemName) {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
-        notificationSegments.add(new ChatSegment("received a new collection log item: ", Color.BLACK));
-        notificationSegments.add(new ChatSegment(itemName, HIGHLIGHT_COLOR));
+        notificationSegments.add(new ChatSegment("received a new collection log item: ", Role.TEXT));
+        notificationSegments.add(new ChatSegment(itemName, Role.HIGHLIGHT));
 
         dispatchNotificationSegments(notificationSegments);
     }

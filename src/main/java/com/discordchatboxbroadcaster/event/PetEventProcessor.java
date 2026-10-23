@@ -4,8 +4,8 @@ import com.discordchatboxbroadcaster.DiscordChatboxBroadcasterConfig;
 import com.discordchatboxbroadcaster.SharedEventState;
 import com.discordchatboxbroadcaster.notifier.Notifier;
 import com.discordchatboxbroadcaster.render.ChatSegment;
+import com.discordchatboxbroadcaster.render.ChatSegment.Role;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -132,16 +132,16 @@ public class PetEventProcessor extends GameEventProcessor {
         List<ChatSegment> notificationSegments = buildPlayerClanPrefixSegments(activePlayerName, activeClanName, playerIcon);
 
         if (petName != null && !petName.isEmpty()) {
-            notificationSegments.add(new ChatSegment(formattedPetMessage + ": ", Color.BLACK));
-            notificationSegments.add(new ChatSegment(petName, HIGHLIGHT_COLOR));
+            notificationSegments.add(new ChatSegment(formattedPetMessage + ": ", Role.TEXT));
+            notificationSegments.add(new ChatSegment(petName, Role.HIGHLIGHT));
 
             if (kcOrXp != null && !kcOrXp.isEmpty()) {
-                notificationSegments.add(new ChatSegment(" at " + kcOrXp + ".", Color.BLACK));
+                notificationSegments.add(new ChatSegment(" at " + kcOrXp + ".", Role.TEXT));
             } else {
-                notificationSegments.add(new ChatSegment(".", Color.BLACK));
+                notificationSegments.add(new ChatSegment(".", Role.TEXT));
             }
         } else {
-            notificationSegments.add(new ChatSegment(formattedPetMessage + ".", Color.BLACK));
+            notificationSegments.add(new ChatSegment(formattedPetMessage + ".", Role.TEXT));
         }
 
         dispatchNotificationSegments(notificationSegments);
